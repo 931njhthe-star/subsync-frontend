@@ -1,0 +1,95 @@
+/* Hover 툴팁 & Click 상세 팝업 & 단어 span 스타일 */
+.subsync-word {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 2px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.subsync-word:hover {
+  background: #ff4757;
+  color: #fff;
+}
+
+/* Hover 툴팁 */
+.subsync-hover-tooltip {
+  position: absolute;
+  background: #2f3542;
+  color: #f1f2f6;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 100000;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.subsync-tt-word {
+  font-weight: 700;
+  color: #ff6b81;
+}
+
+/* Click 상세 팝업 */
+.subsync-click-popup {
+  position: absolute;
+  width: 280px;
+  background: #2f3542;
+  color: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 100001;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.subsync-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.subsync-popup-word {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff4757;
+}
+
+.subsync-popup-phonetic {
+  font-size: 12px;
+  color: #a4b0be;
+}
+
+.subsync-popup-save-btn {
+  background: #ff4757;
+  border: none;
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.subsync-popup-pos {
+  font-size: 12px;
+  color: #ced6e0;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.subsync-popup-defs {
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.subsync-popup-context {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #70a1ff;
+}

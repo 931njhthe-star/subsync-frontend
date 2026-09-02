@@ -1,0 +1,25 @@
+/* 실시간 이중자막 스타일 */
+.subsync-subtitle-box {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px;
+  border-radius: 10px;
+  border-left: 3px solid #ff4757;
+}
+
+.subsync-sub-learn {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #fff;
+}
+
+.subsync-sub-known {
+  font-size: 13px;
+  color: #70a1ff;
+  margin-top: 4px;
+}
+
+.subsync-sub-empty {
+  color: #666;
+  font-size: 13px;
+}

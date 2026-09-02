@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "SubSync - Interactive Dual Subtitle & Video Tutor",
+  "version": "1.0.0",
+  "description": "YouTube 영·한 이중자막, 마우스 단어 즉시 학습 및 Gemini Video Tutor 확장 프로그램",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["src/core/inject.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": [
+        "src/core/captions.js",
+        "src/core/player.js",
+        "src/services/api_client.js",
+        "src/services/auth_service.js",
+        "src/services/dict_service.js",
+        "src/services/tutor_service.js",
+        "src/services/log_service.js",
+        "src/interactive/tokenizer.js",
+        "src/interactive/hover_tooltip.js",
+        "src/interactive/click_popup.js",
+        "src/interactive/interactive_text.js",
+        "src/components/layout.js",
+        "src/components/subtitle_view.js",
+        "src/components/script_panel.js",
+        "src/components/tutor_chat.js",
+        "src/components/auth_modal.js",
+        "src/content_main.js"
+      ],
+      "css": [
+        "styles/main.css",
+        "styles/subtitle.css",
+        "styles/script.css",
+        "styles/interactive.css",
+        "styles/tutor.css",
+        "styles/modal.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "http://localhost:8000/*",
+    "https://api.subsync.xyz/*"
+  ]
+}

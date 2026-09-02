@@ -1,0 +1,92 @@
+/* Video Tutor 채팅창 스타일 */
+.subsync-tutor-box {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subsync-tutor-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff6b81;
+}
+
+.subsync-tutor-messages {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.subsync-msg {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 90%;
+}
+
+.subsync-msg.user {
+  align-self: flex-end;
+  background: #ff4757;
+  color: #fff;
+}
+
+.subsync-msg.tutor {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f2f6;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.subsync-msg-feedback {
+  margin-top: 4px;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.subsync-fb-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.7;
+}
+.subsync-fb-btn:hover {
+  opacity: 1;
+}
+.subsync-fb-done {
+  font-size: 10px;
+  color: #2ed573;
+}
+
+.subsync-tutor-input-box {
+  display: flex;
+  gap: 6px;
+}
+
+.subsync-tutor-input-box input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.subsync-tutor-input-box button {
+  background: #ff4757;
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}

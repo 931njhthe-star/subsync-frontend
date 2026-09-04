@@ -1,4 +1,4 @@
-// 인증 서비스 (토큰 저장/조회 및 상태 확인)
+// 인증 서비스 (토큰 및 사용자 정보 저장/조회/회원가입)
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
@@ -12,9 +12,29 @@
       });
     },
 
+    async getUser() {
+      return new Promise((resolve) => {
+        chrome.storage.local.get([USER_KEY], (res) => resolve(res[USER_KEY] || null));
+      });
+    },
+
     async isAuthenticated() {
       const token = await this.getToken();
       return !!token;
+    },
+
+    async signup(email, password, nickname) {
+      const res = await SubSync.apiClient.request("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({ email, password, nickname })
+      });
+      if (res && res.access_token) {
+        chrome.storage.local.set({
+          [TOKEN_KEY]: res.access_token,
+          [USER_KEY]: { id: res.user_id, email: res.email, nickname: res.nickname }
+        });
+      }
+      return res;
     },
 
     async login(email, password) {
@@ -32,7 +52,14 @@
     },
 
     async logout() {
-      chrome.storage.local.remove([TOKEN_KEY, USER_KEY]);
+      return new Promise((resolve) => {
+        chrome.storage.local.remove([TOKEN_KEY, USER_KEY], () => {
+          if (SubSync.layout && SubSync.layout.updateAuthUI) {
+            SubSync.layout.updateAuthUI();
+          }
+          resolve();
+        });
+      });
     }
   };
 })();

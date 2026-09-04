@@ -23,6 +23,7 @@
         "src/core/player.js",
         "src/services/api_client.js",
         "src/services/auth_service.js",
+        "src/services/settings_service.js",
         "src/services/dict_service.js",
         "src/services/tutor_service.js",
         "src/services/log_service.js",
@@ -30,11 +31,14 @@
         "src/interactive/hover_tooltip.js",
         "src/interactive/click_popup.js",
         "src/interactive/interactive_text.js",
-        "src/components/layout.js",
+        "src/components/saved_words_view.js",
+        "src/components/history_view.js",
+        "src/components/settings_view.js",
         "src/components/subtitle_view.js",
         "src/components/script_panel.js",
         "src/components/tutor_chat.js",
         "src/components/auth_modal.js",
+        "src/components/layout.js",
         "src/content_main.js"
       ],
       "css": [

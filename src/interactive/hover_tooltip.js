@@ -17,6 +17,12 @@
   SubSync.hoverTooltip = {
     show(word, targetEl) {
       clearTimeout(hoverTimer);
+
+      // Hover 기능이 꺼져있거나 SubSync가 꺼져있으면 표시하지 않음
+      if (SubSync.settings && (!SubSync.settings.get("subsyncEnabled") || !SubSync.settings.get("hoverLearning"))) {
+        return;
+      }
+
       if (!word) {
         this.hide();
         return;
@@ -26,22 +32,39 @@
         const el = ensureTooltip();
         const rect = targetEl.getBoundingClientRect();
 
-        el.innerHTML = `<span class="subsync-tt-word">${word}</span> <span class="subsync-tt-loading">뜻 불러오는 중...</span>`;
-        el.style.left = `${rect.left + window.scrollX}px`;
-        el.style.top = `${rect.top + window.scrollY - 34}px`;
+        el.innerHTML = `
+          <div class="subsync-tt-top">
+            <span class="subsync-tt-word">${word}</span>
+            <span class="subsync-tt-loading">뜻 불러오는 중...</span>
+          </div>
+          <div class="subsync-tt-hint">클릭하여 자세히 보기 ›</div>
+        `;
+        el.style.left = `${Math.max(8, rect.left + window.scrollX)}px`;
+        el.style.top = `${Math.max(8, rect.top + window.scrollY - 52)}px`;
         el.style.display = "block";
 
         try {
           const dict = await SubSync.dictService.getHoverMeaning(word);
-          if (dict && dict.meanings && dict.meanings.length) {
-            el.innerHTML = `<span class="subsync-tt-word">${word}</span>: ${dict.meanings.join(", ")}`;
-          } else {
-            el.innerHTML = `<span class="subsync-tt-word">${word}</span>`;
-          }
+          const meaningText = (dict && dict.meanings && dict.meanings.length)
+            ? dict.meanings.join(", ")
+            : "단어";
+
+          el.innerHTML = `
+            <div class="subsync-tt-top">
+              <span class="subsync-tt-word">${word}</span>
+              <span class="subsync-tt-mean">${meaningText}</span>
+            </div>
+            <div class="subsync-tt-hint">클릭하여 자세히 보기 ›</div>
+          `;
         } catch (_) {
-          el.innerHTML = `<span class="subsync-tt-word">${word}</span>`;
+          el.innerHTML = `
+            <div class="subsync-tt-top">
+              <span class="subsync-tt-word">${word}</span>
+            </div>
+            <div class="subsync-tt-hint">클릭하여 자세히 보기 ›</div>
+          `;
         }
-      }, 300); // 0.3초 안정적 딜레이
+      }, 200); // 0.2초 즉각적 반응
     },
 
     hide() {

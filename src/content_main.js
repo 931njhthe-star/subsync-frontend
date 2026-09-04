@@ -1,4 +1,4 @@
-// 프론트엔드 엔트리포인트 (컴포넌트 초기화 및 라이프사이클 조립)
+// 프론트엔드 엔트리포인트 (설정 초기화, 화면 라이프사이클 조립 및 동기화)
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
@@ -19,10 +19,9 @@
         knownLang: "ko"
       });
 
-      const scriptArea = SubSync.layout.getScriptArea();
-      const toggleBtn = document.getElementById("subsync-toggle-script-btn");
-      if (scriptArea && toggleBtn) {
-        SubSync.scriptPanel.init(toggleBtn, scriptArea, subtitles);
+      // 독립 스크립트 패널에 자막 데이터 전달
+      if (SubSync.scriptPanel && SubSync.scriptPanel.setSubtitles) {
+        SubSync.scriptPanel.setSubtitles(subtitles);
       }
     } catch (err) {
       console.error("[SubSync] 자막 빌드 실패:", err);
@@ -37,20 +36,39 @@
 
       const curTime = v.currentTime;
       let activeSub = null;
+
+      // 현재 재생 시간에 해당하는 문장 검색
       for (let i = 0; i < subtitles.length; i++) {
-        if (subtitles[i].timestamp <= curTime) {
-          activeSub = subtitles[i];
-        } else {
+        const sub = subtitles[i];
+        const endTime = sub.end_timestamp || (subtitles[i + 1] ? subtitles[i + 1].timestamp : sub.timestamp + 5.0);
+        if (curTime >= sub.timestamp && curTime <= endTime) {
+          activeSub = sub;
           break;
+        } else if (sub.timestamp <= curTime) {
+          activeSub = sub;
         }
       }
 
-      SubSync.subtitleView.render(SubSync.layout.getSubtitleArea(), activeSub);
+      // 이중자막 렌더링 (영상 위 오버레이 + 사이드바)
+      if (SubSync.settings && SubSync.settings.get("subsyncEnabled") && SubSync.settings.get("dualSubtitle")) {
+        SubSync.subtitleView.render(SubSync.layout.getSubtitleArea(), activeSub);
+      } else {
+        SubSync.subtitleView.clear();
+        const subArea = SubSync.layout.getSubtitleArea();
+        if (subArea) subArea.innerHTML = "";
+      }
+
+      // 스크립트 위치 하이라이트
       SubSync.scriptPanel.highlightTime(curTime);
-    }, 250);
+
+      // AI 선제 질문 체크
+      if (activeSub && activeSub.learn) {
+        SubSync.tutorChat.triggerProactiveIfNeed(activeSub.learn);
+      }
+    }, 200);
   }
 
-  function load() {
+  async function load() {
     const videoId = SubSync.getVideoId();
     if (!videoId) return;
     if (videoId === currentVideoId) return;
@@ -59,7 +77,15 @@
     workingUrl = null;
     subtitles = [];
 
-    SubSync.layout.ensureRoot();
+    // 사용자 설정 초기화
+    if (SubSync.settings && SubSync.settings.init) {
+      await SubSync.settings.init();
+    }
+
+    await SubSync.layout.ensureRoot();
+    if (SubSync.scriptPanel && SubSync.scriptPanel.ensureContainer) {
+      SubSync.scriptPanel.ensureContainer();
+    }
     SubSync.tutorChat.init(SubSync.layout.getTutorArea());
 
     window.postMessage({ source: "SUBSYNC_REQUEST" }, "*");

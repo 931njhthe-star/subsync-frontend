@@ -54,3 +54,20 @@ test("settings service persists and normalizes the light/dark theme", async () =
   assert.equal(settings.get("theme"), "dark");
   assert.equal(getSavedPayload().subsync_user_settings.theme, "dark");
 });
+
+test("settings service persists and normalizes the selected font", async () => {
+  const { context, getSavedPayload } = createContext({ fontFamily: "gmarket" });
+  loadSettings(context);
+  const settings = context.__SubSync.settings;
+
+  await settings.init();
+  assert.equal(settings.get("fontFamily"), "gmarket");
+
+  await settings.set("fontFamily", "system");
+  assert.equal(settings.get("fontFamily"), "system");
+  assert.equal(getSavedPayload().subsync_user_settings.fontFamily, "system");
+
+  await settings.set("fontFamily", "invalid-font");
+  assert.equal(settings.get("fontFamily"), "system");
+  assert.equal(getSavedPayload().subsync_user_settings.fontFamily, "system");
+});

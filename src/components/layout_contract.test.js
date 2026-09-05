@@ -32,10 +32,16 @@ test("video screen does not render a second Script open button", () => {
   assert.doesNotMatch(layout, /videoScriptBtn/);
 });
 
+test("Script panel title uses the compact Script label", () => {
+  assert.match(scriptPanel, /subsync-script-title-text">Script<\/span>/);
+  assert.doesNotMatch(scriptPanel, /subsync-script-title-text">전체 Script<\/span>/);
+});
+
 test("Script panel mounts inside the main panel instead of document body", () => {
   assert.match(scriptPanel, /getScriptArea\(\)/);
   assert.doesNotMatch(scriptPanel, /document\.body\.appendChild\(containerEl\)/);
 });
+
 
 test("Script panel exposes an accessible collapse and expand control", () => {
   assert.match(scriptPanel, /id="subsync-script-collapse-btn"/);

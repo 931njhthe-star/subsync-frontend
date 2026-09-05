@@ -71,6 +71,11 @@ test("theme stylesheet keeps light colors scoped to SubSync surfaces", () => {
     assert.doesNotMatch(block, /--subsync-accent:\s*#(?:ff4757|d92d43|c43bff)/i);
   }
   assert.doesNotMatch(themeCss, /--subsync-accent:\s*#(?:ff4757|d92d43|c43bff)/i);
+  const lightStart = themeCss.indexOf('body[data-subsync-theme="light"]');
+  const lightEnd = themeCss.indexOf('body[data-subsync-theme="glass"]', lightStart);
+  const lightTokens = themeCss.slice(lightStart, lightEnd);
+  assert.match(lightTokens, /--subsync-panel-bg:\s*rgba\(255,\s*255,\s*255,\s*0\.86\)/);
+  assert.match(lightTokens, /--subsync-overlay-bg:\s*rgba\(255,\s*255,\s*255,\s*0\.70\)/);
   const componentStyleFiles = ["main.css", "subtitle.css", "script.css", "tutor.css", "modal.css", "interactive.css", "motion.css"];
   for (const fileName of componentStyleFiles) {
     const css = fs.readFileSync(path.join(projectRoot, "styles", fileName), "utf8");

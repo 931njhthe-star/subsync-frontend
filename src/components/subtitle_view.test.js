@@ -61,6 +61,15 @@ class FakeElement {
     return child;
   }
 
+  contains(node) {
+    let current = node;
+    while (current) {
+      if (current === this) return true;
+      current = current.parentNode;
+    }
+    return false;
+  }
+
   addEventListener(type, handler, options) {
     if (!this.listeners.has(type)) this.listeners.set(type, []);
     this.listeners.get(type).push({ handler, options });
@@ -129,7 +138,11 @@ function loadSubtitleView() {
   context.window = context;
   context.__SubSync = {
     settings: { get: () => true },
-    interactiveText: { attach() {} },
+    interactiveText: {
+      attach(element, text) {
+        element.textContent = text;
+      }
+    },
     drag: { attach() {} }
   };
   const filename = path.join(root, "src", "components", "subtitle_view.js");
@@ -165,4 +178,34 @@ test("double-clicking the video caption restores its default position", () => {
   assert.equal(overlay.style.right, "");
   assert.equal(overlay.style.bottom, "");
   assert.equal(overlay.style.transform, "");
+});
+
+test("subtitle content refreshes when the current cue object is updated", () => {
+  const { document, subtitleView } = loadSubtitleView();
+  const sideContainer = document.createElement("div");
+  const subtitle = { learn: "first subtitle", known: "첫 문장" };
+
+  subtitleView.render(sideContainer, subtitle);
+  assert.equal(document.getElementById("subsync-sub-learn-text").textContent, "first subtitle");
+  assert.match(sideContainer.innerHTML, /첫 문장/);
+
+  subtitle.learn = "updated subtitle";
+  subtitle.known = "변경된 문장";
+  subtitleView.render(sideContainer, subtitle);
+
+  assert.equal(document.getElementById("subsync-sub-learn-text").textContent, "updated subtitle");
+  assert.match(sideContainer.innerHTML, /변경된 문장/);
+});
+
+test("the same subtitle can render again after the subtitle view is cleared", () => {
+  const { document, subtitleView } = loadSubtitleView();
+  const sideContainer = document.createElement("div");
+  const subtitle = { learn: "repeatable subtitle", known: "다시 표시" };
+
+  subtitleView.render(sideContainer, subtitle);
+  subtitleView.clear();
+  sideContainer.innerHTML = "";
+  subtitleView.render(sideContainer, subtitle);
+
+  assert.match(sideContainer.innerHTML, /subsync-sub-learn-text/);
 });

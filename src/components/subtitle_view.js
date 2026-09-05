@@ -4,6 +4,9 @@
 
   let overlayEl = null;
   let currentSub = null;
+  let currentRenderKey = null;
+  let currentSideContainerEl = null;
+  let currentOverlayEl = null;
   let captionExitTimer = null;
 
   const POSITION_PROPERTIES = ["left", "top", "right", "bottom", "transform"];
@@ -50,6 +53,22 @@
     }
   }
 
+  function makeRenderKey(subtitle, isSubsyncEnabled, isDualSubEnabled) {
+    return JSON.stringify({
+      enabled: Boolean(isSubsyncEnabled),
+      dual: Boolean(isDualSubEnabled),
+      subtitle: subtitle
+        ? {
+            videoId: subtitle.video_id || "",
+            timestamp: subtitle.timestamp ?? null,
+            endTimestamp: subtitle.end_timestamp ?? null,
+            learn: subtitle.learn || "",
+            known: subtitle.known || ""
+          }
+        : null
+    });
+  }
+
   function ensureVideoOverlay() {
     if (overlayEl && document.body.contains(overlayEl)) return overlayEl;
 
@@ -86,16 +105,28 @@
 
   SubSync.subtitleView = {
     render(sideContainerEl, subtitle) {
-      if (currentSub === subtitle) return;
-      currentSub = subtitle;
-
-      // 1. YouTube 영상 화면 위 오버레이 렌더링
-      const overlay = ensureVideoOverlay();
       const isSubsyncEnabled = SubSync.settings ? SubSync.settings.get("subsyncEnabled") : true;
       const isDualSubEnabled = SubSync.settings ? SubSync.settings.get("dualSubtitle") : true;
+      const overlay = ensureVideoOverlay();
+      const renderKey = makeRenderKey(subtitle, isSubsyncEnabled, isDualSubEnabled);
 
+      if (
+        currentRenderKey === renderKey &&
+        currentSideContainerEl === sideContainerEl &&
+        currentOverlayEl === overlay
+      ) {
+        return;
+      }
+
+      currentSub = subtitle;
+      currentRenderKey = renderKey;
+      currentSideContainerEl = sideContainerEl;
+      currentOverlayEl = overlay;
+
+      // 1. YouTube 영상 화면 위 오버레이 렌더링
+      const isSubtitleVisible = isSubsyncEnabled && isDualSubEnabled && Boolean(subtitle);
       if (overlay) {
-        if (!isSubsyncEnabled || !isDualSubEnabled || !subtitle) {
+        if (!isSubtitleVisible) {
           overlay.style.display = "flex";
           const content = overlay.querySelector && overlay.querySelector(".subsync-overlay-content");
           if (content) {
@@ -158,6 +189,9 @@
 
     clear() {
       currentSub = null;
+      currentRenderKey = null;
+      currentSideContainerEl = null;
+      currentOverlayEl = null;
       if (overlayEl) {
         if (overlayEl.style.display === "none") return;
         overlayEl.style.display = "flex";

@@ -143,6 +143,9 @@
     if (SubSync.theme && SubSync.theme.init) {
       SubSync.theme.init();
     }
+    if (SubSync.font && SubSync.font.init) {
+      SubSync.font.init();
+    }
 
     await SubSync.layout.ensureRoot();
     if (SubSync.scriptPanel && SubSync.scriptPanel.ensureContainer) {

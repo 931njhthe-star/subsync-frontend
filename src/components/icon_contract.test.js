@@ -43,12 +43,10 @@ test("icon assets use an extension URL helper and are exposed to YouTube", () =>
     manifest.content_scripts[1].js.indexOf("src/core/icon_assets.js") <
       manifest.content_scripts[1].js.indexOf("src/components/layout.js")
   );
-  assert.deepEqual(manifest.web_accessible_resources, [
-    {
-      resources: ["assets/icons/*.svg"],
-      matches: ["https://www.youtube.com/*"]
-    }
-  ]);
+  assert.equal(manifest.web_accessible_resources.length, 1);
+  assert.deepEqual(manifest.web_accessible_resources[0].matches, ["https://www.youtube.com/*"]);
+  assert.ok(manifest.web_accessible_resources[0].resources.includes("assets/icons/*.svg"));
+  assert.ok(manifest.web_accessible_resources[0].resources.includes("assets/fonts/*.woff"));
 });
 
 test("the six feature controls use the original SVG icon set", () => {
@@ -82,6 +80,25 @@ test("icon CSS keeps SVG sizing and state styling scoped to SubSync controls", (
   assert.match(iconCss, /subsync-script-collapse-collapsed/);
 });
 
+test("Script header icon and label use a shared vertical alignment box", () => {
+  assert.match(iconCss, /\.subsync-script-header-title\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center[\s\S]*line-height:\s*1/);
+  assert.match(iconCss, /\.subsync-script-icon\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center[\s\S]*line-height:\s*0/);
+  assert.match(iconCss, /\.subsync-script-header-icon\s*\{[\s\S]*display:\s*block[\s\S]*margin:\s*0/);
+});
+
+test("collapsed Script hover does not restart the panel entrance animation on exit", () => {
+  const collapsedRule = iconCss.match(
+    /\.subsync-script-panel-container\.subsync-script-panel-collapsed\s*\{[\s\S]*?\n\}/
+  )?.[0] || "";
+  const hoverRule = iconCss.match(
+    /\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s*\{[\s\S]*?\n\}/
+  )?.[0] || "";
+
+  assert.match(collapsedRule, /animation:\s*none/);
+  assert.doesNotMatch(hoverRule, /animation\s*:/);
+  assert.match(hoverRule, /transform:\s*translateY\(0\)\s*scale\(1\)/);
+});
+
 test("search and collapse icons use the neutral circle-chevron treatment", () => {
   assert.match(searchSvg, /stroke="#BFC0C4"/);
   assert.match(searchSvg, /stroke-width="2"/);
@@ -98,16 +115,17 @@ test("search and collapse icons use the neutral circle-chevron treatment", () =>
   assert.match(iconCss, /\.subsync-script-search-icon\s*\{[\s\S]*width:\s*18px/);
   assert.match(iconCss, /\.subsync-script-search-icon\s*\{[\s\S]*height:\s*18px/);
   assert.match(iconCss, /\.subsync-script-panel-container\s+\.subsync-script-collapse-btn[\s\S]*background:\s*transparent/);
-  assert.match(iconCss, /subsync-script-panel-preparing/);
-  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-preparing\s*\{[\s\S]*transform:\s*none/);
-  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-preparing\s+\.subsync-script-list\s*\{[\s\S]*max-height:\s*12px/);
-  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-preparing\s+\.subsync-script-list\s*\{[\s\S]*padding:\s*4px\s+10px\s+0/);
-  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-preparing\s+\.subsync-script-list\s*\{[\s\S]*overflow:\s*hidden/);
-  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-preparing\s+\.subsync-script-list::before/);
-  assert.match(iconCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.subsync-script-panel-container\.subsync-script-panel-collapsed\s+\.subsync-script-list[\s\S]*transition:\s*none/);
-  assert.doesNotMatch(iconCss, /subsync-script-panel-preparing[\s\S]*transform:\s*translateY\(-2px\)/);
-  assert.match(scriptPanel, /mouseenter/);
-  assert.match(scriptPanel, /mouseleave/);
+  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s*\{/);
+  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s+\.subsync-script-list\s*\{[\s\S]*max-height:\s*12px/);
+  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s+\.subsync-script-list\s*\{[\s\S]*padding:\s*4px\s+10px\s+0/);
+  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s+\.subsync-script-list\s*\{[\s\S]*overflow:\s*hidden/);
+  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s+\.subsync-script-list\s*\{[\s\S]*pointer-events:\s*auto/);
+  assert.match(iconCss, /\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s+\.subsync-script-list::before/);
+  assert.match(iconCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*\.subsync-script-panel-container\.subsync-script-panel-collapsed:hover\s+\.subsync-script-list[\s\S]*transition:\s*none/);
+  assert.doesNotMatch(iconCss, /subsync-script-panel-preparing/);
+  assert.doesNotMatch(scriptPanel, /collapseHovering|collapseHoverTimer|COLLAPSE_HOVER_EXIT_DELAY_MS/);
+  assert.doesNotMatch(scriptPanel, /addEventListener\("mouseenter"/);
+  assert.doesNotMatch(scriptPanel, /addEventListener\("mouseleave"/);
   assert.doesNotMatch(scriptPanel, /collapseFocused/);
   assert.doesNotMatch(scriptPanel, /addEventListener\("focus"/);
   assert.doesNotMatch(scriptPanel, /addEventListener\("blur"/);

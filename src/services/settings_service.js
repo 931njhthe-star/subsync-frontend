@@ -4,9 +4,14 @@
 
   const SETTINGS_KEY = "subsync_user_settings";
   const VALID_THEMES = Object.freeze(["dark", "light", "glass"]);
+  const VALID_FONTS = Object.freeze(["system", "gmarket"]);
 
   function normalizeTheme(value) {
     return VALID_THEMES.includes(value) ? value : "dark";
+  }
+
+  function normalizeFont(value) {
+    return VALID_FONTS.includes(value) ? value : "system";
   }
 
   const defaultSettings = {
@@ -17,7 +22,8 @@
     tutorEnabled: true,         // Video Tutor ON/OFF
     proactiveTutor: true,       // Tutor 선제 질문 ON/OFF
     saveMode: "auto",           // 단어 저장 방식: "auto" (좌클릭 시 자동 저장) | "manual" (저장 버튼 눌러 저장)
-    theme: "dark"               // 화면 테마: "dark" | "light" | "glass"
+    theme: "dark",              // 화면 테마: "dark" | "light" | "glass"
+    fontFamily: "system"        // UI 폰트: "system" | "gmarket"
   };
 
   SubSync.settings = {
@@ -30,6 +36,7 @@
           if (res && res[SETTINGS_KEY]) {
             this._state = { ...defaultSettings, ...res[SETTINGS_KEY] };
             this._state.theme = normalizeTheme(this._state.theme);
+            this._state.fontFamily = normalizeFont(this._state.fontFamily);
           }
           resolve(this._state);
         });
@@ -47,6 +54,8 @@
     async set(key, value) {
       if (key === "theme") {
         value = normalizeTheme(value);
+      } else if (key === "fontFamily") {
+        value = normalizeFont(value);
       }
       this._state[key] = value;
       await this.save();
@@ -57,6 +66,9 @@
       const next = { ...partial };
       if (Object.prototype.hasOwnProperty.call(next, "theme")) {
         next.theme = normalizeTheme(next.theme);
+      }
+      if (Object.prototype.hasOwnProperty.call(next, "fontFamily")) {
+        next.fontFamily = normalizeFont(next.fontFamily);
       }
       this._state = { ...this._state, ...next };
       await this.save();

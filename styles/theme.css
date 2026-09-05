@@ -38,7 +38,7 @@ body[data-subsync-theme="dark"] {
 }
 
 body[data-subsync-theme="light"] {
-  --subsync-panel-bg: rgba(255, 255, 255, 0.98);
+  --subsync-panel-bg: rgba(255, 255, 255, 0.86);
   --subsync-panel-text: #1f2937;
   --subsync-panel-border: rgba(15, 23, 42, 0.14);
   --subsync-panel-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
@@ -61,7 +61,7 @@ body[data-subsync-theme="light"] {
   --subsync-blue-hover: #66a0ff;
   --subsync-success: #12805c;
   --subsync-error: #b42318;
-  --subsync-overlay-bg: rgba(255, 255, 255, 0.96);
+  --subsync-overlay-bg: rgba(255, 255, 255, 0.70);
   --subsync-tooltip-bg: rgba(255, 255, 255, 0.98);
   --subsync-popup-bg: #ffffff;
   --subsync-modal-bg: #ffffff;
@@ -373,17 +373,17 @@ body[data-subsync-theme] .subsync-script-row.active .subsync-script-ko {
   color: var(--subsync-text-muted);
 }
 
-body[data-subsync-theme] .subsync-script-panel-preparing {
+body[data-subsync-theme] .subsync-script-panel-collapsed:hover {
   border-color: var(--subsync-peek-border);
   box-shadow: var(--subsync-shadow-strong);
 }
 
-body[data-subsync-theme] .subsync-script-panel-preparing .subsync-script-list {
+body[data-subsync-theme] .subsync-script-panel-collapsed:hover .subsync-script-list {
   background: var(--subsync-peek-bg);
   border-top-color: var(--subsync-peek-border);
 }
 
-body[data-subsync-theme] .subsync-script-panel-preparing .subsync-script-list::before {
+body[data-subsync-theme] .subsync-script-panel-collapsed:hover .subsync-script-list::before {
   border-color: var(--subsync-peek-border);
   background: var(--subsync-peek-surface);
 }
@@ -719,7 +719,7 @@ body[data-subsync-theme="glass"] .subsync-auth-modal-overlay {
   background: var(--subsync-modal-backdrop);
 }
 
-body[data-subsync-theme="glass"] .subsync-script-panel-preparing .subsync-script-list {
+body[data-subsync-theme="glass"] .subsync-script-panel-collapsed:hover .subsync-script-list {
   background: rgba(8, 8, 12, 0.38);
   border-top-color: var(--subsync-peek-border);
 }

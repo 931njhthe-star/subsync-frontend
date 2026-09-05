@@ -27,6 +27,7 @@
         "src/services/auth_service.js",
         "src/services/settings_service.js",
         "src/core/theme.js",
+        "src/core/font.js",
         "src/services/dict_service.js",
         "src/services/tutor_service.js",
         "src/services/log_service.js",
@@ -55,7 +56,8 @@
         "styles/modal.css",
         "styles/motion.css",
         "styles/icons.css",
-        "styles/theme.css"
+        "styles/theme.css",
+        "styles/fonts.css"
       ],
       "run_at": "document_idle"
     }
@@ -68,7 +70,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["assets/icons/*.svg"],
+      "resources": ["assets/icons/*.svg", "assets/fonts/*.woff"],
       "matches": ["https://www.youtube.com/*"]
     }
   ]

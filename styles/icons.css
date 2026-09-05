@@ -34,6 +34,36 @@
   align-items: center;
 }
 
+.subsync-script-header-title {
+  display: flex;
+  align-items: center;
+  min-height: 18px;
+  line-height: 1;
+}
+
+.subsync-script-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 18px;
+  flex: 0 0 15px;
+  margin: 0;
+  line-height: 0;
+}
+
+.subsync-script-header-icon {
+  display: block;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+}
+
+.subsync-script-title-text {
+  display: block;
+  line-height: 18px;
+}
+
 .subsync-qb-script .subsync-ui-icon,
 .subsync-action-btn .subsync-ui-icon,
 .subsync-script-header-icon,
@@ -75,6 +105,7 @@
 }
 
 .subsync-script-panel-container.subsync-script-panel-collapsed {
+  animation: none;
   transition:
     opacity 180ms ease,
     transform 240ms cubic-bezier(0.22, 1.12, 0.36, 1),
@@ -94,26 +125,25 @@
     padding 260ms ease;
 }
 
-.subsync-script-panel-container.subsync-script-panel-preparing {
-  animation: none;
-  transform: none;
+.subsync-script-panel-container.subsync-script-panel-collapsed:hover {
+  transform: translateY(0) scale(1);
   border-color: rgba(216, 216, 218, 0.3);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
 }
 
-.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list {
+.subsync-script-panel-container.subsync-script-panel-collapsed:hover .subsync-script-list {
   flex: 0 0 auto;
   height: 16px;
   max-height: 12px;
   overflow: hidden;
   opacity: 0.48;
   padding: 4px 10px 0;
-  pointer-events: none;
+  pointer-events: auto;
   background: rgba(8, 8, 12, 0.42);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list::before {
+.subsync-script-panel-container.subsync-script-panel-collapsed:hover .subsync-script-list::before {
   content: "";
   display: block;
   flex: 0 0 8px;
@@ -124,17 +154,17 @@
   box-sizing: border-box;
 }
 
-.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list > .subsync-script-row,
-.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list > .subsync-view-empty {
+.subsync-script-panel-container.subsync-script-panel-collapsed:hover .subsync-script-list > .subsync-script-row,
+.subsync-script-panel-container.subsync-script-panel-collapsed:hover .subsync-script-list > .subsync-view-empty {
   visibility: hidden;
 }
 
 .subsync-script-panel-container button.subsync-script-collapse-btn:hover:not(:disabled) {
-  transform: translateX(-50%) scale(1.04);
+  transform: translateX(-50%);
 }
 
 .subsync-script-panel-container button.subsync-script-collapse-btn:active:not(:disabled) {
-  transform: translateX(-50%) scale(0.96);
+  transform: translateX(-50%);
 }
 
 .subsync-script-collapse-btn .subsync-script-collapse-icon {
@@ -169,7 +199,7 @@
     transition: none;
   }
 
-  .subsync-script-panel-container.subsync-script-panel-preparing {
-    transform: none;
+  .subsync-script-panel-container.subsync-script-panel-collapsed:hover .subsync-script-list {
+    transition: none;
   }
 }

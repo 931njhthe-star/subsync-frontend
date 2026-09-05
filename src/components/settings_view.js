@@ -8,6 +8,7 @@
 
       const s = SubSync.settings.getAll();
       const theme = ["light", "glass"].includes(s.theme) ? s.theme : "dark";
+      const fontFamily = s.fontFamily === "gmarket" ? "gmarket" : "system";
 
       containerEl.innerHTML = `
         <div class="subsync-settings-card">
@@ -76,6 +77,27 @@
               </label>
             </div>
           </div>
+
+          <div class="subsync-setting-section subsync-font-section">
+            <div class="subsync-st-title">폰트</div>
+            <div class="subsync-st-desc">SubSync 화면에 사용할 폰트를 선택</div>
+            <div class="subsync-radio-group subsync-font-group" role="radiogroup" aria-label="폰트">
+              <label class="subsync-font-option subsync-font-system">
+                <input type="radio" name="fontFamily" value="system" ${fontFamily === "system" ? "checked" : ""}>
+                <span>
+                  <strong>기본 시스템 폰트</strong>
+                  <small>-apple-system · Segoe UI · Roboto</small>
+                </span>
+              </label>
+              <label class="subsync-font-option subsync-font-gmarket">
+                <input type="radio" name="fontFamily" value="gmarket" ${fontFamily === "gmarket" ? "checked" : ""}>
+                <span>
+                  <strong>GMarketSans</strong>
+                  <small>G마켓 산스 Medium</small>
+                </span>
+              </label>
+            </div>
+          </div>
         </div>
       `;
 
@@ -103,6 +125,16 @@
             SubSync.theme.apply(nextTheme);
           }
           SubSync.settings.set("theme", nextTheme);
+        });
+      });
+      containerEl.querySelectorAll('input[name="fontFamily"]').forEach((radio) => {
+        radio.addEventListener("change", (e) => {
+          if (!e.target.checked) return;
+          const nextFont = e.target.value === "gmarket" ? "gmarket" : "system";
+          if (SubSync.font && SubSync.font.apply) {
+            SubSync.font.apply(nextFont);
+          }
+          SubSync.settings.set("fontFamily", nextFont);
         });
       });
     }

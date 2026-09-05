@@ -9,20 +9,11 @@
   let isCollapsed = true;
   let scriptCloseTimer = null;
   let searchCloseTimer = null;
-  let collapseHovering = false;
 
   const SCRIPT_TRANSITION_MS = 260;
   const SEARCH_TRANSITION_MS = 220;
   const SCRIPT_TRACKING_TOP_GAP = 16;
   const SCRIPT_TRACKING_THRESHOLD = 8;
-
-  function syncCollapsePreview() {
-    if (!containerEl) return;
-    containerEl.classList.toggle(
-      "subsync-script-panel-preparing",
-      isCollapsed && collapseHovering
-    );
-  }
 
   SubSync.scriptPanel = {
     ensureContainer() {
@@ -39,7 +30,7 @@
         <div class="subsync-script-panel-header">
           <div class="subsync-script-header-title">
             <span class="subsync-script-icon">${SubSync.icon("script", "subsync-script-header-icon")}</span>
-            <span class="subsync-script-title-text">전체 Script</span>
+            <span class="subsync-script-title-text">Script</span>
           </div>
           <button id="subsync-script-collapse-btn" class="subsync-script-collapse-btn subsync-script-collapse-collapsed" type="button" title="전체 스크립트 펼치기" aria-label="전체 스크립트 펼치기" aria-expanded="false" aria-controls="subsync-script-list">${SubSync.icon("collapse", "subsync-script-collapse-icon")}</button>
           <div class="subsync-script-header-actions">
@@ -66,14 +57,6 @@
       const collapseBtn = containerEl.querySelector("#subsync-script-collapse-btn");
       collapseBtn.addEventListener("click", () => {
         this.setCollapsed(!isCollapsed);
-      });
-      collapseBtn.addEventListener("mouseenter", () => {
-        collapseHovering = true;
-        syncCollapsePreview();
-      });
-      collapseBtn.addEventListener("mouseleave", () => {
-        collapseHovering = false;
-        syncCollapsePreview();
       });
 
       // 닫기 버튼
@@ -150,9 +133,6 @@
       if (!containerEl) return;
       if (scriptCloseTimer) clearTimeout(scriptCloseTimer);
 
-      collapseHovering = false;
-      syncCollapsePreview();
-
       containerEl.classList.remove("subsync-script-panel-open");
       containerEl.classList.add("subsync-script-panel-closing");
       isOpen = false;
@@ -186,7 +166,6 @@
         collapseBtn.setAttribute("aria-label", collapseBtn.title);
         collapseBtn.setAttribute("aria-expanded", String(!isCollapsed));
       }
-      syncCollapsePreview();
     },
 
     toggleCollapsed() {

@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const filename = path.join(__dirname, "content_main.js");
 const source = fs.readFileSync(filename, "utf8");
 
-function createHarness() {
+function createHarness(options = {}) {
   const listeners = new Map();
   const window = {
     addEventListener(type, handler) {
@@ -20,6 +20,7 @@ function createHarness() {
   };
   const buildCalls = [];
   const highlightCalls = [];
+  const renderCalls = [];
   let syncCallback = null;
   const video = { currentTime: 0, paused: false, ended: false };
   let videoId = "video-1";
@@ -58,12 +59,16 @@ function createHarness() {
       }
     },
     subtitleView: {
-      render() {},
+      render(...args) {
+        renderCalls.push(args);
+      },
       clear() {}
     },
-    async buildSubtitlesFromUrl(video, url, options) {
-      buildCalls.push({ video, url, options });
-      return [{ video_id: video, timestamp: 0, end_timestamp: 1, learn: "hello" }];
+    async buildSubtitlesFromUrl(video, url, buildOptions) {
+      buildCalls.push({ video, url, options: buildOptions });
+      return options.builtSubtitles || [
+        { video_id: video, timestamp: 0, end_timestamp: 1, learn: "hello" }
+      ];
     }
   };
 
@@ -89,6 +94,7 @@ function createHarness() {
     SubSync,
     buildCalls,
     highlightCalls,
+    renderCalls,
     emit(data) {
       const handler = listeners.get("message");
       assert.ok(handler, "content_main must register a message listener");
@@ -178,4 +184,27 @@ test("paused playback keeps the current Script row focused without auto-scroll t
   harness.setPlayback({ currentTime: 0.5, paused: true });
   harness.tick();
   assert.equal(harness.highlightCalls.at(-1)[1].autoScroll, false);
+});
+
+test("playback changes the rendered subtitle when crossing into the next cue", async () => {
+  const first = { timestamp: 0, end_timestamp: 1, learn: "first subtitle" };
+  const second = { timestamp: 1, end_timestamp: 2, learn: "second subtitle" };
+  const harness = createHarness({ builtSubtitles: [first, second] });
+
+  harness.emit({ source: "SUBSYNC", type: "TRACKS", tracks: [{ lang: "en" }] });
+  harness.emit({
+    source: "SUBSYNC",
+    type: "TIMEDTEXT_URL",
+    url: "https://www.youtube.com/api/timedtext?captured=1"
+  });
+  await flush();
+
+  harness.setPlayback({ currentTime: 0.5, paused: false });
+  harness.tick();
+  harness.setPlayback({ currentTime: 1.5, paused: false });
+  harness.tick();
+
+  assert.equal(harness.renderCalls.length, 2);
+  assert.equal(harness.renderCalls[0][1], first);
+  assert.equal(harness.renderCalls[1][1], second);
 });

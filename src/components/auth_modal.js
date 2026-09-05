@@ -5,6 +5,39 @@
   let modalEl = null;
   let onSuccessCallback = null;
   let isSignupMode = false;
+  let hideTimer = null;
+
+  const MODAL_TRANSITION_MS = 240;
+
+  function clearHideTimer() {
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+  }
+
+  function hideModal() {
+    if (!modalEl) return;
+    clearHideTimer();
+    modalEl.classList.remove("subsync-modal-visible");
+    modalEl.classList.add("subsync-modal-exiting");
+    hideTimer = setTimeout(() => {
+      if (modalEl) {
+        modalEl.style.display = "none";
+        modalEl.classList.remove("subsync-modal-exiting");
+      }
+      hideTimer = null;
+    }, MODAL_TRANSITION_MS);
+  }
+
+  function showModal(element) {
+    if (!element) return;
+    clearHideTimer();
+    element.style.display = "flex";
+    element.classList.remove("subsync-modal-exiting");
+    void element.offsetWidth;
+    element.classList.add("subsync-modal-visible");
+  }
 
   function renderModalContent() {
     if (!modalEl) return;
@@ -42,7 +75,7 @@
     `;
 
     document.getElementById("subsync-auth-cancel-btn").addEventListener("click", () => {
-      modalEl.style.display = "none";
+      hideModal();
     });
 
     document.getElementById("subsync-toggle-auth-mode").addEventListener("click", (e) => {
@@ -73,7 +106,7 @@
           alert("로그인되었습니다!");
         }
 
-        modalEl.style.display = "none";
+        hideModal();
         if (SubSync.layout && SubSync.layout.updateAuthUI) {
           SubSync.layout.updateAuthUI();
         }
@@ -104,10 +137,10 @@
       isSignupMode = openSignup;
       const m = ensureModal();
       renderModalContent();
-      m.style.display = "flex";
+      showModal(m);
     },
     hide() {
-      if (modalEl) modalEl.style.display = "none";
+      hideModal();
     }
   };
 })();

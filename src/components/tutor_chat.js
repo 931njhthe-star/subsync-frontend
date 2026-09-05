@@ -10,7 +10,7 @@
 
       containerEl.innerHTML = `
         <div class="subsync-tutor-box">
-          <div class="subsync-tutor-header">🤖 Video Tutor (AI 학습 대화)</div>
+          <div class="subsync-tutor-header">${SubSync.icon("ai-tutor", "subsync-tutor-icon")}<span>Video Tutor (AI 학습 대화)</span></div>
           <div class="subsync-tutor-messages" id="subsync-tutor-msgs"></div>
           <div class="subsync-tutor-input-box">
             <input type="text" id="subsync-tutor-input" placeholder="영상 내용 질문하기..." />

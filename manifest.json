@@ -21,12 +21,17 @@
       "js": [
         "src/core/captions.js",
         "src/core/player.js",
+        "src/core/icon_assets.js",
+        "src/core/glass_filter.js",
         "src/services/api_client.js",
         "src/services/auth_service.js",
         "src/services/settings_service.js",
+        "src/core/theme.js",
         "src/services/dict_service.js",
         "src/services/tutor_service.js",
         "src/services/log_service.js",
+        "src/interactive/drag_controller.js",
+        "src/interactive/resize_controller.js",
         "src/interactive/tokenizer.js",
         "src/interactive/hover_tooltip.js",
         "src/interactive/click_popup.js",
@@ -47,7 +52,10 @@
         "styles/script.css",
         "styles/interactive.css",
         "styles/tutor.css",
-        "styles/modal.css"
+        "styles/modal.css",
+        "styles/motion.css",
+        "styles/icons.css",
+        "styles/theme.css"
       ],
       "run_at": "document_idle"
     }
@@ -57,5 +65,11 @@
     "https://www.youtube.com/*",
     "http://localhost:8000/*",
     "https://api.subsync.xyz/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/icons/*.svg"],
+      "matches": ["https://www.youtube.com/*"]
+    }
   ]
 }

@@ -30,9 +30,12 @@
 
   function buildVariant(workingUrl, lang, nativeLangs, sourceLang) {
     const nativeCode = SubSync.resolveNativeLang(nativeLangs, lang);
+    const sameLanguage =
+      lang === sourceLang ||
+      (lang && sourceLang && lang.split("-")[0] === sourceLang.split("-")[0]);
     const u = new URL(workingUrl, location.origin);
-    if (nativeCode) {
-      u.searchParams.set("lang", nativeCode);
+    if (nativeCode || sameLanguage) {
+      u.searchParams.set("lang", nativeCode || sourceLang);
       u.searchParams.delete("tlang");
     } else {
       u.searchParams.set("lang", sourceLang);

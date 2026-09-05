@@ -2,7 +2,43 @@
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
+  const POPUP_TRANSITION_MS = 220;
   let popupEl = null;
+  let hideTimer = null;
+
+  function clearHideTimer() {
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+  }
+
+  function showPopupElement(element) {
+    if (!element) return;
+    clearHideTimer();
+    const wasHidden =
+      element.style.display === "none" || !element.classList.contains("subsync-popup-visible");
+    element.style.display = "block";
+    element.classList.remove("subsync-popup-exiting");
+    if (wasHidden) {
+      void element.offsetWidth;
+      element.classList.add("subsync-popup-visible");
+    }
+  }
+
+  function hidePopupElement() {
+    if (!popupEl) return;
+    clearHideTimer();
+    popupEl.classList.remove("subsync-popup-visible");
+    popupEl.classList.add("subsync-popup-exiting");
+    hideTimer = setTimeout(() => {
+      if (popupEl) {
+        popupEl.style.display = "none";
+        popupEl.classList.remove("subsync-popup-exiting");
+      }
+      hideTimer = null;
+    }, POPUP_TRANSITION_MS);
+  }
 
   function ensurePopup() {
     if (popupEl) return popupEl;
@@ -18,7 +54,13 @@
         !popupEl.contains(e.target) &&
         !e.target.classList.contains("subsync-word")
       ) {
-        popupEl.style.display = "none";
+        hidePopupElement();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        SubSync.clickPopup.hide();
       }
     });
 
@@ -43,7 +85,7 @@
       const rect = targetEl.getBoundingClientRect();
       el.style.left = `${Math.min(window.innerWidth - 320, Math.max(16, rect.left + window.scrollX))}px`;
       el.style.top = `${rect.bottom + window.scrollY + 8}px`;
-      el.style.display = "block";
+      showPopupElement(el);
       el.innerHTML = `<div class="subsync-popup-loading">상세 설명 로딩 중...</div>`;
 
       // 클릭 로그 기록
@@ -70,6 +112,7 @@
             <button class="subsync-popup-save-btn" id="subsync-save-word-btn">
               ${saveMode === "auto" ? "✅ 자동 저장됨" : "⭐ 저장하기"}
             </button>
+            <button type="button" class="subsync-popup-close-btn" aria-label="상세 학습 닫기">×</button>
           </div>
           <div class="subsync-popup-pos">${data.part_of_speech || "단어"} · ${(data.meanings || []).join(", ")}</div>
           ${defsHtml ? `<div class="subsync-popup-defs">${defsHtml}</div>` : ""}
@@ -78,6 +121,14 @@
         `;
 
         const saveBtn = document.getElementById("subsync-save-word-btn");
+        const closeBtn = el.querySelector(".subsync-popup-close-btn");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.hide();
+          });
+        }
 
         // 자동 저장 모드인 경우 즉시 백엔드 단어 저장
         if (saveMode === "auto") {
@@ -93,12 +144,25 @@
           });
         }
       } catch (err) {
-        el.innerHTML = `<div class="subsync-popup-error">상세 정보를 불러오지 못했습니다.</div>`;
+        el.innerHTML = `
+          <div class="subsync-popup-error">
+            <span>상세 정보를 불러오지 못했습니다.</span>
+            <button type="button" class="subsync-popup-close-btn" aria-label="상세 학습 닫기">×</button>
+          </div>
+        `;
+        const errorCloseBtn = el.querySelector(".subsync-popup-close-btn");
+        if (errorCloseBtn) {
+          errorCloseBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.hide();
+          });
+        }
       }
     },
 
     hide() {
-      if (popupEl) popupEl.style.display = "none";
+      hidePopupElement();
     }
   };
 })();

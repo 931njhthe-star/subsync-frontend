@@ -7,25 +7,73 @@
   let workingUrl = null;
   let tracks = [];
   let syncTimer = null;
+  let trackMetadataReady = false;
+  let loadGeneration = 0;
+  let nextBuildId = 0;
+  let buildInFlight = null;
+  let lastBuildKey = null;
+
+  function makeBuildKey(videoId, url, trackSnapshot) {
+    return JSON.stringify({
+      videoId,
+      url,
+      tracks: trackSnapshot.map((track) => ({
+        lang: track.lang || "",
+        kind: track.kind || ""
+      }))
+    });
+  }
 
   async function tryBuildSubtitles() {
     const videoId = SubSync.getVideoId();
-    if (!videoId || !workingUrl) return;
+    const url = workingUrl;
+    if (!videoId || !url || !trackMetadataReady) return;
 
-    try {
-      subtitles = await SubSync.buildSubtitlesFromUrl(videoId, workingUrl, {
-        tracks,
-        learnLang: "en",
-        knownLang: "ko"
-      });
-
-      // 독립 스크립트 패널에 자막 데이터 전달
-      if (SubSync.scriptPanel && SubSync.scriptPanel.setSubtitles) {
-        SubSync.scriptPanel.setSubtitles(subtitles);
-      }
-    } catch (err) {
-      console.error("[SubSync] 자막 빌드 실패:", err);
+    const trackSnapshot = Array.isArray(tracks)
+      ? tracks.map((track) => ({ ...(track || {}) }))
+      : [];
+    const buildKey = makeBuildKey(videoId, url, trackSnapshot);
+    if (lastBuildKey === buildKey) return;
+    if (buildInFlight && buildInFlight.key === buildKey) {
+      return buildInFlight.promise;
     }
+
+    const generation = loadGeneration;
+    const buildId = ++nextBuildId;
+    const promise = (async () => {
+      try {
+        const result = await SubSync.buildSubtitlesFromUrl(videoId, url, {
+          tracks: trackSnapshot,
+          learnLang: "en",
+          knownLang: "ko"
+        });
+
+        // 영상이 바뀌었거나 더 최신 metadata 빌드가 시작되면 이전 결과를 버린다.
+        if (
+          generation !== loadGeneration ||
+          buildId !== nextBuildId ||
+          videoId !== currentVideoId ||
+          url !== workingUrl
+        ) {
+          return;
+        }
+
+        subtitles = result;
+        lastBuildKey = buildKey;
+        if (SubSync.scriptPanel && SubSync.scriptPanel.setSubtitles) {
+          SubSync.scriptPanel.setSubtitles(subtitles);
+        }
+      } catch (err) {
+        console.error("[SubSync] 자막 빌드 실패:", err);
+      } finally {
+        if (buildInFlight && buildInFlight.id === buildId) {
+          buildInFlight = null;
+        }
+      }
+    })();
+
+    buildInFlight = { id: buildId, key: buildKey, promise };
+    return promise;
   }
 
   function startSync() {
@@ -59,7 +107,9 @@
       }
 
       // 스크립트 위치 하이라이트
-      SubSync.scriptPanel.highlightTime(curTime);
+      SubSync.scriptPanel.highlightTime(curTime, {
+        autoScroll: !v.paused && !v.ended
+      });
 
       // AI 선제 질문 체크
       if (activeSub && activeSub.learn) {
@@ -74,12 +124,24 @@
     if (videoId === currentVideoId) return;
 
     currentVideoId = videoId;
+    loadGeneration += 1;
+    nextBuildId += 1;
+    buildInFlight = null;
+    lastBuildKey = null;
     workingUrl = null;
     subtitles = [];
+    tracks = [];
+    trackMetadataReady = false;
 
     // 사용자 설정 초기화
     if (SubSync.settings && SubSync.settings.init) {
       await SubSync.settings.init();
+    }
+    if (SubSync.glassFilter && SubSync.glassFilter.init) {
+      SubSync.glassFilter.init();
+    }
+    if (SubSync.theme && SubSync.theme.init) {
+      SubSync.theme.init();
     }
 
     await SubSync.layout.ensureRoot();
@@ -95,8 +157,11 @@
   window.addEventListener("message", (e) => {
     if (e.source !== window || !e.data || e.data.source !== "SUBSYNC") return;
     if (e.data.type === "TRACKS") {
-      tracks = e.data.tracks || [];
+      tracks = Array.isArray(e.data.tracks) ? e.data.tracks : [];
+      trackMetadataReady = true;
+      if (workingUrl) tryBuildSubtitles();
     } else if (e.data.type === "TIMEDTEXT_URL") {
+      if (typeof e.data.url !== "string" || !e.data.url) return;
       workingUrl = e.data.url;
       tryBuildSubtitles();
     }

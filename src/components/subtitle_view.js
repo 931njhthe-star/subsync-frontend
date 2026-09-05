@@ -4,6 +4,51 @@
 
   let overlayEl = null;
   let currentSub = null;
+  let captionExitTimer = null;
+
+  const POSITION_PROPERTIES = ["left", "top", "right", "bottom", "transform"];
+
+  function clearInlinePosition(element) {
+    if (!element || !element.style) return;
+    POSITION_PROPERTIES.forEach((property) => {
+      if (typeof element.style.removeProperty === "function") {
+        element.style.removeProperty(property);
+      } else {
+        element.style[property] = "";
+      }
+    });
+  }
+
+  function resetOverlayPosition() {
+    if (!overlayEl) return;
+    clearInlinePosition(overlayEl);
+    overlayEl.classList.remove("subsync-dragging");
+  }
+
+  function attachPositionReset(element) {
+    if (!element || element.__subsyncPositionResetAttached) return;
+
+    element.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      resetOverlayPosition();
+    });
+    element.__subsyncPositionResetAttached = true;
+  }
+
+  function restartAnimation(element, className) {
+    if (!element || !element.classList) return;
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+  }
+
+  function clearCaptionExitTimer() {
+    if (captionExitTimer) {
+      clearTimeout(captionExitTimer);
+      captionExitTimer = null;
+    }
+  }
 
   function ensureVideoOverlay() {
     if (overlayEl && document.body.contains(overlayEl)) return overlayEl;
@@ -32,6 +77,10 @@
     }
 
     playerContainer.appendChild(overlayEl);
+    if (SubSync.drag && SubSync.drag.attach) {
+      SubSync.drag.attach(overlayEl, overlayEl, { preserveCenterX: true });
+    }
+    attachPositionReset(overlayEl);
     return overlayEl;
   }
 
@@ -47,8 +96,24 @@
 
       if (overlay) {
         if (!isSubsyncEnabled || !isDualSubEnabled || !subtitle) {
-          overlay.style.display = "none";
+          overlay.style.display = "flex";
+          const content = overlay.querySelector && overlay.querySelector(".subsync-overlay-content");
+          if (content) {
+            content.classList.remove("subsync-caption-entering");
+            content.classList.add("subsync-caption-exiting");
+            clearCaptionExitTimer();
+            captionExitTimer = setTimeout(() => {
+              if (overlayEl && !currentSub) {
+                overlayEl.style.display = "none";
+                content.classList.remove("subsync-caption-exiting");
+              }
+              captionExitTimer = null;
+            }, 180);
+          } else {
+            overlay.style.display = "none";
+          }
         } else {
+          clearCaptionExitTimer();
           overlay.style.display = "flex";
           const enEl = document.getElementById("subsync-overlay-en-text");
           const koEl = document.getElementById("subsync-overlay-ko-text");
@@ -59,6 +124,14 @@
           if (koEl) {
             koEl.textContent = subtitle.known || "";
             koEl.style.display = subtitle.known ? "block" : "none";
+          }
+          if (overlay.querySelector) {
+            const content = overlay.querySelector(".subsync-overlay-content");
+            if (content) content.classList.remove("subsync-caption-exiting");
+            restartAnimation(
+              content,
+              "subsync-caption-entering"
+            );
           }
         }
       }
@@ -79,12 +152,35 @@
         if (learnSideEl) {
           SubSync.interactiveText.attach(learnSideEl, subtitle.learn, subtitle.learn);
         }
+        restartAnimation(sideContainerEl, "subsync-content-changing");
       }
     },
 
     clear() {
       currentSub = null;
-      if (overlayEl) overlayEl.style.display = "none";
+      if (overlayEl) {
+        if (overlayEl.style.display === "none") return;
+        overlayEl.style.display = "flex";
+        const content = overlayEl.querySelector && overlayEl.querySelector(".subsync-overlay-content");
+        if (!content) {
+          overlayEl.style.display = "none";
+          return;
+        }
+        content.classList.remove("subsync-caption-entering");
+        content.classList.add("subsync-caption-exiting");
+        clearCaptionExitTimer();
+        captionExitTimer = setTimeout(() => {
+          if (overlayEl && !currentSub) {
+            overlayEl.style.display = "none";
+            content.classList.remove("subsync-caption-exiting");
+          }
+          captionExitTimer = null;
+        }, 180);
+      }
+    },
+
+    resetPosition() {
+      resetOverlayPosition();
     }
   };
 })();

@@ -11,8 +11,13 @@
       const fragment = SubSync.tokenizer.tokenizeToFragment(
         englishText,
         (word, span) => {
-          if (word) SubSync.hoverTooltip.show(word, span);
-          else SubSync.hoverTooltip.hide();
+          if (word) {
+            SubSync.hoverTooltip.show(word, span, sentence);
+          } else if (SubSync.hoverTooltip.leaveTarget) {
+            SubSync.hoverTooltip.leaveTarget();
+          } else {
+            SubSync.hoverTooltip.hide();
+          }
         },
         (word, sent, span) => {
           SubSync.hoverTooltip.hide();

@@ -1,6 +1,6 @@
 /* SubSync 메인 레이아웃 및 탭 화면 스타일 */
 
-/* 빠른 설정 플로팅 바 [ SubSync ● ON ] ⚙ */
+/* 빠른 설정 플로팅 바 [ SubSync ● ON ] */
 .subsync-quick-bar {
   position: fixed;
   right: 24px;
@@ -15,6 +15,26 @@
   padding: 4px 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   gap: 6px;
+}
+
+.subsync-qb-drag-handle {
+  flex: 0 0 auto;
+  color: #a4b0be;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: -3px;
+  padding: 4px 2px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.subsync-quick-bar.subsync-dragging .subsync-qb-drag-handle {
+  cursor: grabbing;
+}
+
+.subsync-qb-drag-handle:hover {
+  color: #fff;
 }
 
 .subsync-qb-toggle {
@@ -55,7 +75,7 @@
   transition: background 0.15s;
 }
 .subsync-qb-script:hover {
-  background: #ff4757;
+  background: var(--subsync-accent, #3f7ff5);
 }
 
 .subsync-video-screen-actions {
@@ -81,12 +101,12 @@
   gap: 6px;
 }
 .subsync-action-btn:hover {
-  background: rgba(255, 71, 87, 0.2);
-  border-color: #ff4757;
-  color: #ff6b81;
+  background: var(--subsync-accent-soft, rgba(63, 127, 245, 0.22));
+  border-color: var(--subsync-accent, #3f7ff5);
+  color: var(--subsync-accent-text, #66a0ff);
 }
 
-.subsync-qb-gear {
+.subsync-qb-panel-toggle {
   background: rgba(255, 255, 255, 0.1);
   border: none;
   cursor: pointer;
@@ -113,16 +133,143 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
+  min-width: 320px;
+  min-height: 260px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transform-origin: top right;
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+  will-change: opacity, transform, filter;
+  transition:
+    opacity 220ms ease,
+    transform 360ms cubic-bezier(0.22, 1.28, 0.36, 1),
+    filter 220ms ease,
+    visibility 0s linear 0s;
+}
+
+.subsync-container.subsync-panel-closed {
+  opacity: 0;
+  transform: translate3d(0, -10px, 0) scale(0.94);
+  filter: blur(8px);
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity 220ms ease,
+    transform 360ms cubic-bezier(0.22, 1.28, 0.36, 1),
+    filter 220ms ease,
+    visibility 0s linear 360ms;
+}
+
+.subsync-container.subsync-dragging,
+.subsync-container.subsync-resizing {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subsync-container,
+  .subsync-container.subsync-panel-closed {
+    transition: none;
+  }
+}
+
+.subsync-inline-script-area {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.subsync-resize-handle {
+  position: absolute;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.subsync-resize-n,
+.subsync-resize-s {
+  left: 12px;
+  right: 12px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.subsync-resize-n {
+  top: 0;
+}
+
+.subsync-resize-s {
+  bottom: 0;
+}
+
+.subsync-resize-e,
+.subsync-resize-w {
+  top: 12px;
+  bottom: 12px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.subsync-resize-e {
+  right: 0;
+}
+
+.subsync-resize-w {
+  left: 0;
+}
+
+.subsync-resize-ne,
+.subsync-resize-se,
+.subsync-resize-sw,
+.subsync-resize-nw {
+  width: 14px;
+  height: 14px;
+}
+
+.subsync-resize-ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.subsync-resize-se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+.subsync-resize-sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.subsync-resize-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.subsync-container.subsync-resizing {
+  user-select: none;
 }
 
 .subsync-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.04);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.subsync-container.subsync-dragging .subsync-panel-header {
+  cursor: grabbing;
 }
 
 .subsync-brand-area {
@@ -134,7 +281,7 @@
 .subsync-brand {
   font-weight: 800;
   font-size: 16px;
-  color: #ff4757;
+  color: var(--subsync-accent, #3f7ff5);
   letter-spacing: 0.5px;
 }
 
@@ -166,7 +313,7 @@
   cursor: pointer;
 }
 .subsync-btn-small:hover {
-  background: #ff4757;
+  background: var(--subsync-accent, #3f7ff5);
   color: #fff;
 }
 
@@ -201,13 +348,14 @@
   transition: all 0.15s;
 }
 .subsync-nav-btn.active {
-  background: #ff4757;
+  background: var(--subsync-accent, #3f7ff5);
   color: #fff;
   font-weight: 700;
 }
 
 .subsync-body {
   flex: 1;
+  min-height: 0;
   padding: 12px;
   overflow-y: auto;
   display: flex;
@@ -215,7 +363,24 @@
 }
 
 .subsync-screen-panel {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
   height: 100%;
+}
+
+#subsync-screen-tutor {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#subsync-tutor-area {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
 }
 
 /* 공통 화면 상태 메시지 */
@@ -262,11 +427,11 @@
 .subsync-saved-word {
   font-size: 15px;
   font-weight: 700;
-  color: #ff6b81;
+  color: var(--subsync-accent-text, #66a0ff);
 }
 .subsync-saved-time {
   font-size: 11px;
-  color: #70a1ff;
+  color: var(--subsync-blue, #3f7ff5);
 }
 .subsync-saved-meaning {
   font-size: 13px;
@@ -357,7 +522,7 @@
   border-radius: 50%;
 }
 .subsync-switch input:checked + .subsync-slider {
-  background-color: #ff4757;
+  background-color: var(--subsync-accent, #3f7ff5);
 }
 .subsync-switch input:checked + .subsync-slider:before {
   transform: translateX(16px);
@@ -380,7 +545,7 @@
   cursor: pointer;
 }
 .subsync-htab.active {
-  background: #ff4757;
+  background: var(--subsync-accent, #3f7ff5);
   color: #fff;
   font-weight: 600;
 }
@@ -396,7 +561,7 @@
 }
 .subsync-h-word {
   font-weight: 700;
-  color: #ff6b81;
+  color: var(--subsync-accent-text, #66a0ff);
   font-size: 14px;
 }
 .subsync-h-meaning {

@@ -7,6 +7,7 @@
       if (!containerEl) return;
 
       const s = SubSync.settings.getAll();
+      const theme = ["light", "glass"].includes(s.theme) ? s.theme : "dark";
 
       containerEl.innerHTML = `
         <div class="subsync-settings-card">
@@ -56,6 +57,25 @@
               </label>
             </div>
           </div>
+
+          <div class="subsync-setting-section subsync-theme-section">
+            <div class="subsync-st-title">화면 테마</div>
+            <div class="subsync-st-desc">SubSync 패널의 색상 테마를 선택</div>
+            <div class="subsync-radio-group subsync-theme-group" role="radiogroup" aria-label="화면 테마">
+              <label class="subsync-theme-option">
+                <input type="radio" name="theme" value="dark" ${theme === "dark" ? "checked" : ""}>
+                다크
+              </label>
+              <label class="subsync-theme-option">
+                <input type="radio" name="theme" value="light" ${theme === "light" ? "checked" : ""}>
+                화이트
+              </label>
+              <label class="subsync-theme-option">
+                <input type="radio" name="theme" value="glass" ${theme === "glass" ? "checked" : ""}>
+                글라스
+              </label>
+            </div>
+          </div>
         </div>
       `;
 
@@ -73,6 +93,16 @@
           if (e.target.checked) {
             SubSync.settings.set("saveMode", e.target.value);
           }
+        });
+      });
+      containerEl.querySelectorAll('input[name="theme"]').forEach((radio) => {
+        radio.addEventListener("change", (e) => {
+          if (!e.target.checked) return;
+          const nextTheme = ["light", "glass"].includes(e.target.value) ? e.target.value : "dark";
+          if (SubSync.theme && SubSync.theme.apply) {
+            SubSync.theme.apply(nextTheme);
+          }
+          SubSync.settings.set("theme", nextTheme);
         });
       });
     }

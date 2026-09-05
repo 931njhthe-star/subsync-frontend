@@ -1,0 +1,175 @@
+/* SubSync 오리지널 SVG 아이콘 스타일 */
+.subsync-ui-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  vertical-align: middle;
+  opacity: 0.78;
+  pointer-events: none;
+  user-select: none;
+}
+
+.subsync-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.subsync-nav-btn .subsync-ui-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.subsync-nav-btn.active .subsync-ui-icon {
+  opacity: 1;
+}
+
+.subsync-qb-script,
+.subsync-script-header-title,
+.subsync-tutor-header {
+  display: inline-flex;
+  align-items: center;
+}
+
+.subsync-qb-script .subsync-ui-icon,
+.subsync-action-btn .subsync-ui-icon,
+.subsync-script-header-icon,
+.subsync-tutor-icon {
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+}
+
+.subsync-qb-script .subsync-ui-icon,
+.subsync-action-btn .subsync-ui-icon,
+.subsync-script-header-icon,
+.subsync-tutor-icon {
+  opacity: 0.9;
+}
+
+.subsync-script-panel-header {
+  position: relative;
+  padding-bottom: 26px;
+}
+
+.subsync-script-panel-container .subsync-script-collapse-btn {
+  position: absolute;
+  top: auto;
+  bottom: 4px;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  appearance: none;
+  transform: translateX(-50%);
+}
+
+.subsync-script-panel-container.subsync-script-panel-collapsed {
+  transition:
+    opacity 180ms ease,
+    transform 240ms cubic-bezier(0.22, 1.12, 0.36, 1),
+    visibility 0s linear 240ms,
+    box-shadow 240ms ease,
+    border-color 240ms ease;
+}
+
+.subsync-script-panel-container.subsync-script-panel-collapsed .subsync-script-list {
+  flex: 0 0 auto;
+  height: 0;
+  box-sizing: border-box;
+  transition:
+    height 260ms cubic-bezier(0.22, 1.12, 0.36, 1),
+    max-height 260ms cubic-bezier(0.22, 1.12, 0.36, 1),
+    opacity 180ms ease,
+    padding 260ms ease;
+}
+
+.subsync-script-panel-container.subsync-script-panel-preparing {
+  animation: none;
+  transform: none;
+  border-color: rgba(216, 216, 218, 0.3);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+}
+
+.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list {
+  flex: 0 0 auto;
+  height: 16px;
+  max-height: 12px;
+  overflow: hidden;
+  opacity: 0.48;
+  padding: 4px 10px 0;
+  pointer-events: none;
+  background: rgba(8, 8, 12, 0.42);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list::before {
+  content: "";
+  display: block;
+  flex: 0 0 8px;
+  height: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px 8px 4px 4px;
+  background: rgba(255, 255, 255, 0.055);
+  box-sizing: border-box;
+}
+
+.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list > .subsync-script-row,
+.subsync-script-panel-container.subsync-script-panel-preparing .subsync-script-list > .subsync-view-empty {
+  visibility: hidden;
+}
+
+.subsync-script-panel-container button.subsync-script-collapse-btn:hover:not(:disabled) {
+  transform: translateX(-50%) scale(1.04);
+}
+
+.subsync-script-panel-container button.subsync-script-collapse-btn:active:not(:disabled) {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.subsync-script-collapse-btn .subsync-script-collapse-icon {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  opacity: 1;
+  transition: transform 220ms cubic-bezier(0.22, 1.12, 0.36, 1);
+}
+
+.subsync-script-collapse-btn.subsync-script-collapse-collapsed .subsync-script-collapse-icon {
+  transform: rotate(0deg);
+}
+
+.subsync-script-collapse-btn:not(.subsync-script-collapse-collapsed) .subsync-script-collapse-icon {
+  transform: rotate(180deg);
+}
+
+.subsync-script-search-icon {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subsync-script-panel-container.subsync-script-panel-collapsed {
+    transition: none;
+  }
+
+  .subsync-script-panel-container.subsync-script-panel-collapsed .subsync-script-list {
+    transition: none;
+  }
+
+  .subsync-script-panel-container.subsync-script-panel-preparing {
+    transform: none;
+  }
+}

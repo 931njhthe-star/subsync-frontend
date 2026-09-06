@@ -28,12 +28,21 @@
     );
   }
 
-  function buildVariant(workingUrl, lang, nativeLangs, sourceLang) {
+  function buildVariant(workingUrl, lang, tracks, sourceLang) {
+    const nativeLangs = tracks.map((track) => track.lang || "");
     const nativeCode = SubSync.resolveNativeLang(nativeLangs, lang);
     const sameLanguage =
       lang === sourceLang ||
       (lang && sourceLang && lang.split("-")[0] === sourceLang.split("-")[0]);
-    const u = new URL(workingUrl, location.origin);
+    const nativeTrack = nativeCode
+      ? tracks.find((track) => track.lang === nativeCode)
+      : null;
+    const shouldUseNativeTrackUrl =
+      nativeTrack && nativeTrack.baseUrl && !sameLanguage;
+    const u = new URL(
+      shouldUseNativeTrackUrl ? nativeTrack.baseUrl : workingUrl,
+      location.origin
+    );
     if (nativeCode || sameLanguage) {
       u.searchParams.set("lang", nativeCode || sourceLang);
       u.searchParams.delete("tlang");
@@ -115,17 +124,39 @@
     return result.length ? result : rawLines;
   }
 
-  async function fetchLines(url) {
+  async function fetchLines(url, fetcher = fetch) {
     try {
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) return [];
+      const res = await fetcher(url, { credentials: "include" });
+      if (!res.ok) {
+        return {
+          lines: [],
+          error: {
+            code: "http",
+            httpStatus: Number(res.status) || 0
+          }
+        };
+      }
       const text = await res.text();
-      if (!text) return [];
-      const data = JSON.parse(text);
-      return parseJson3(data);
+      if (!text) return { lines: [], error: { code: "empty" } };
+
+      try {
+        const data = JSON.parse(text);
+        const lines = parseJson3(data);
+        return lines.length
+          ? { lines, error: null }
+          : { lines: [], error: { code: "no-cues" } };
+      } catch (_) {
+        return { lines: [], error: { code: "parse" } };
+      }
     } catch (err) {
-      console.warn("[SubSync] 자막 파싱 오류 / URL:", url, err);
-      return [];
+      console.warn("[SubSync] 자막 요청 실패:", err && err.name ? err.name : "network");
+      return { lines: [], error: { code: "network" } };
+    }
+  }
+
+  function reportStatus(options, status) {
+    if (options && typeof options.onStatus === "function") {
+      options.onStatus(status);
     }
   }
 
@@ -142,6 +173,73 @@
     return bestDiff <= tolerance ? best : "";
   }
 
+  function intervalGap(startA, endA, startB, endB) {
+    if (endA < startB) return startB - endA;
+    if (endB < startA) return startA - endB;
+    return 0;
+  }
+
+  function intervalOverlap(startA, endA, startB, endB) {
+    return Math.max(0, Math.min(endA, endB) - Math.max(startA, startB));
+  }
+
+  function alignKnownLines(learnLines, knownLines) {
+    const aligned = learnLines.map(() => []);
+
+    for (const knownLine of knownLines) {
+      const knownStart = Number(knownLine.start);
+      const knownEnd = Math.max(knownStart, Number(knownLine.end));
+      if (!Number.isFinite(knownStart) || !Number.isFinite(knownEnd)) continue;
+
+      let best = null;
+      learnLines.forEach((learnLine, index) => {
+        const learnStart = Number(learnLine.start);
+        const learnEnd = Math.max(learnStart, Number(learnLine.end));
+        if (!Number.isFinite(learnStart) || !Number.isFinite(learnEnd)) return;
+
+        const overlap = intervalOverlap(knownStart, knownEnd, learnStart, learnEnd);
+        const gap = intervalGap(knownStart, knownEnd, learnStart, learnEnd);
+        const candidate = { index, overlap, gap };
+        if (
+          !best ||
+          candidate.overlap > best.overlap ||
+          (candidate.overlap === best.overlap && candidate.gap < best.gap) ||
+          (candidate.overlap === best.overlap &&
+            candidate.gap === best.gap &&
+            candidate.index < best.index)
+        ) {
+          best = candidate;
+        }
+      });
+
+      if (best && (best.overlap > 0 || best.gap <= 3.5)) {
+        aligned[best.index].push(knownLine);
+      }
+    }
+
+    return aligned.map((lines) => {
+      const uniqueLines = [];
+      for (const line of lines.sort((a, b) => a.start - b.start)) {
+        const text = line.text.trim();
+        if (!text) continue;
+
+        const isDuplicate = uniqueLines.some(
+          (previous) =>
+            previous.text === text &&
+            intervalOverlap(
+              Number(previous.start),
+              Number(previous.end),
+              Number(line.start),
+              Number(line.end)
+            ) > 0
+        );
+        if (!isDuplicate) uniqueLines.push({ ...line, text });
+      }
+
+      return uniqueLines.map((line) => line.text).join(" ");
+    });
+  }
+
   SubSync.buildSubtitlesFromUrl = async function buildSubtitlesFromUrl(
     videoId,
     workingUrl,
@@ -150,32 +248,50 @@
     const tracks = (opts && opts.tracks) || [];
     const learnLang = (opts && opts.learnLang) || "en";
     const knownLang = (opts && opts.knownLang) || "ko";
+    const fetchCaption = (opts && opts.fetchCaption) || fetch;
     const nativeLangs = tracks.map((t) => t.lang || "");
     const sourceLang = pickSourceLang(nativeLangs);
 
-    console.log("[SubSync] 자막 생성 시작:", { videoId, learnLang, knownLang, tracks, sourceLang });
+    console.log("[SubSync] 자막 생성 시작:", {
+      videoId,
+      learnLang,
+      knownLang,
+      trackLanguages: nativeLangs,
+      sourceLang
+    });
 
-    const rawLearnLines = await fetchLines(
-      buildVariant(workingUrl, learnLang, nativeLangs, sourceLang)
+    const learnResult = await fetchLines(
+      buildVariant(workingUrl, learnLang, tracks, sourceLang),
+      fetchCaption
     );
-    if (!rawLearnLines.length) return [];
+    const rawLearnLines = learnResult.lines;
+    if (!rawLearnLines.length) {
+      reportStatus(opts, {
+        state: "error",
+        phase: "learn",
+        ...(learnResult.error || { code: "no-cues" })
+      });
+      return [];
+    }
 
     let rawKnownLines = [];
+    let knownError = null;
     if (knownLang) {
-      rawKnownLines = await fetchLines(
-        buildVariant(workingUrl, knownLang, nativeLangs, sourceLang)
+      const knownResult = await fetchLines(
+        buildVariant(workingUrl, knownLang, tracks, sourceLang),
+        fetchCaption
       );
+      rawKnownLines = knownResult.lines;
+      knownError = knownResult.error;
     }
 
     // 통으로 뭉개지지 않도록 적절한 문장/시간 단위로 정제
     const learnLines = splitAndFormatSentences(rawLearnLines);
     const knownLines = rawKnownLines.length ? rawKnownLines : [];
+    const alignedKnownText = alignKnownLines(learnLines, knownLines);
 
-    return learnLines.map((line) => {
-      let matchedKo = "";
-      if (knownLines.length) {
-        matchedKo = findNearestText(knownLines, line.start, 3.5);
-      }
+    const result = learnLines.map((line, index) => {
+      const matchedKo = alignedKnownText[index] || "";
 
       return {
         video_id: videoId,
@@ -185,5 +301,13 @@
         known: matchedKo || ""
       };
     });
+
+    reportStatus(
+      opts,
+      knownError
+        ? { state: "warning", phase: "known", ...knownError }
+        : { state: "ready", phase: "complete", count: result.length }
+    );
+    return result;
   };
 })();

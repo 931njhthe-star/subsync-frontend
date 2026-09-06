@@ -22,6 +22,28 @@
   }
 }
 
+@keyframes subsync-screen-in-forward {
+  from {
+    opacity: 1;
+    transform: translate3d(100%, 0, 0) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes subsync-screen-in-backward {
+  from {
+    opacity: 1;
+    transform: translate3d(-100%, 0, 0) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 @keyframes subsync-content-change {
   from {
     opacity: 0.45;
@@ -196,6 +218,14 @@
 
 .subsync-screen-panel.subsync-screen-entering {
   animation: subsync-screen-in 300ms cubic-bezier(0.22, 1.12, 0.36, 1) both;
+}
+
+.subsync-screen-panel.subsync-screen-entering.subsync-screen-direction-forward {
+  animation: subsync-screen-in-forward 300ms cubic-bezier(0.22, 1.12, 0.36, 1) both;
+}
+
+.subsync-screen-panel.subsync-screen-entering.subsync-screen-direction-backward {
+  animation: subsync-screen-in-backward 300ms cubic-bezier(0.22, 1.12, 0.36, 1) both;
 }
 
 .subsync-subtitle-box.subsync-content-changing {

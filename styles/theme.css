@@ -3,6 +3,7 @@ body[data-subsync-theme="dark"] {
   --subsync-panel-bg: rgba(18, 18, 22, 0.96);
   --subsync-panel-text: #ffffff;
   --subsync-panel-border: rgba(255, 255, 255, 0.12);
+  --subsync-divider: rgba(255, 255, 255, 0.14);
   --subsync-panel-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
   --subsync-bar-bg: rgba(20, 20, 24, 0.9);
   --subsync-surface: rgba(255, 255, 255, 0.04);
@@ -38,9 +39,10 @@ body[data-subsync-theme="dark"] {
 }
 
 body[data-subsync-theme="light"] {
-  --subsync-panel-bg: rgba(255, 255, 255, 0.86);
+  --subsync-panel-bg: rgba(255, 255, 255, 0.65);
   --subsync-panel-text: #1f2937;
   --subsync-panel-border: rgba(15, 23, 42, 0.14);
+  --subsync-divider: rgba(15, 23, 42, 0.12);
   --subsync-panel-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
   --subsync-bar-bg: rgba(255, 255, 255, 0.94);
   --subsync-surface: rgba(15, 23, 42, 0.045);
@@ -61,7 +63,7 @@ body[data-subsync-theme="light"] {
   --subsync-blue-hover: #66a0ff;
   --subsync-success: #12805c;
   --subsync-error: #b42318;
-  --subsync-overlay-bg: rgba(255, 255, 255, 0.70);
+  --subsync-overlay-bg: rgba(255, 255, 255, 0.65);
   --subsync-tooltip-bg: rgba(255, 255, 255, 0.98);
   --subsync-popup-bg: #ffffff;
   --subsync-modal-bg: #ffffff;
@@ -79,6 +81,7 @@ body[data-subsync-theme="glass"] {
   --subsync-panel-bg: rgba(24, 24, 24, 0.6);
   --subsync-panel-text: rgba(255, 255, 255, 0.92);
   --subsync-panel-border: rgba(178, 178, 178, 0.34);
+  --subsync-divider: rgba(178, 178, 178, 0.24);
   --subsync-panel-shadow:
     0 20px 50px rgba(0, 0, 0, 0.36),
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
@@ -223,7 +226,7 @@ body[data-subsync-theme] .subsync-nav-btn {
 }
 
 body[data-subsync-theme] .subsync-nav-btn.active {
-  background: var(--subsync-accent);
+  background: transparent;
   color: #ffffff;
 }
 
@@ -441,9 +444,88 @@ body[data-subsync-theme] .subsync-sub-known {
   color: var(--subsync-blue);
 }
 
+body[data-subsync-theme="light"] .subsync-overlay-ko {
+  color: var(--subsync-accent-text);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-shadow: none;
+}
+
 body[data-subsync-theme] .subsync-subtitle-box {
   background: var(--subsync-inset);
   border-left-color: var(--subsync-accent);
+}
+
+/* 화이트 테마 내부 패널 대비 */
+body[data-subsync-theme="light"] .subsync-settings-card,
+body[data-subsync-theme="light"] .subsync-saved-item,
+body[data-subsync-theme="light"] .subsync-history-item,
+body[data-subsync-theme="light"] .subsync-msg.tutor {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  box-shadow:
+    0 4px 14px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+body[data-subsync-theme="light"] .subsync-tutor-box {
+  background: var(--subsync-overlay-bg);
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  box-shadow:
+    0 8px 22px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+body[data-subsync-theme] .subsync-settings-card .subsync-setting-row + .subsync-setting-row,
+body[data-subsync-theme] .subsync-settings-card .subsync-setting-section {
+  border-top: 1px solid var(--subsync-divider);
+  padding-top: 12px;
+}
+
+body[data-subsync-theme="light"] .subsync-subtitle-box {
+  background: var(--subsync-overlay-bg);
+  border: 1px solid rgba(15, 23, 42, 0.22);
+  border-left: 3px solid var(--subsync-accent);
+  box-shadow:
+    0 8px 22px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+body[data-subsync-theme="light"] .subsync-overlay-content {
+  background: var(--subsync-overlay-bg);
+  border: 1px solid rgba(15, 23, 42, 0.22);
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+body[data-subsync-theme="light"] .subsync-subtitle-box .subsync-sub-known {
+  border-top: 1px solid rgba(15, 23, 42, 0.14);
+  padding-top: 6px;
+}
+
+body[data-subsync-theme="light"] .subsync-htab {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  color: var(--subsync-text-secondary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+body[data-subsync-theme="light"] .subsync-htab.active {
+  border-color: var(--subsync-accent);
+  box-shadow: 0 3px 10px rgba(63, 127, 245, 0.2);
+}
+
+body[data-subsync-theme="light"] .subsync-history-activity {
+  background: rgba(63, 127, 245, 0.1);
+  border-color: rgba(40, 103, 217, 0.28);
+  color: var(--subsync-accent-text);
+}
+
+body[data-subsync-theme="light"] .subsync-history-video-thumb {
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
 }
 
 body[data-subsync-theme] .subsync-sub-learn {
@@ -664,6 +746,14 @@ body[data-subsync-theme="glass"] .subsync-msg.tutor {
   -webkit-backdrop-filter: blur(16px) saturate(120%);
 }
 
+body[data-subsync-theme="glass"] .subsync-history-item {
+  background: rgba(24, 24, 24, 0.78);
+  border-color: rgba(178, 178, 178, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 26px rgba(0, 0, 0, 0.24);
+}
+
 /* Glass 설정 영역만 더 어둡게 해 작은 설명 텍스트의 대비를 확보 */
 body[data-subsync-theme="glass"] .subsync-settings-card {
   background: rgba(24, 24, 24, 0.78);
@@ -715,6 +805,27 @@ body[data-subsync-theme="glass"] .subsync-script-search-bar input {
   -webkit-backdrop-filter: blur(20px) saturate(125%);
 }
 
+body[data-subsync-theme="glass"] .subsync-overlay-content {
+  background: rgba(18, 18, 18, 0.58);
+}
+
+body[data-subsync-theme="glass"] .subsync-overlay-ko {
+  color: #72d5ff;
+  font-size: 16px;
+  font-weight: 600;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.92),
+    0 0 3px rgba(0, 0, 0, 0.6);
+}
+
+body[data-subsync-theme="glass"] .subsync-sub-known {
+  color: #72d5ff;
+  font-weight: 700;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.92),
+    0 0 3px rgba(0, 0, 0, 0.6);
+}
+
 body[data-subsync-theme="glass"] .subsync-auth-modal-overlay {
   background: var(--subsync-modal-backdrop);
 }
@@ -726,8 +837,14 @@ body[data-subsync-theme="glass"] .subsync-script-panel-collapsed:hover .subsync-
 
 body[data-subsync-theme="light"] .subsync-nav-icon,
 body[data-subsync-theme="light"] .subsync-qb-icon,
+body[data-subsync-theme="light"] .subsync-qb-expand-icon,
 body[data-subsync-theme="light"] .subsync-script-header-icon,
 body[data-subsync-theme="light"] .subsync-tutor-icon {
+  filter: brightness(0) saturate(100%);
+}
+
+body[data-subsync-theme="light"] .subsync-script-search-icon {
+  opacity: 1;
   filter: brightness(0) saturate(100%);
 }
 

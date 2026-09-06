@@ -19,6 +19,7 @@
     {
       "matches": ["https://www.youtube.com/*"],
       "js": [
+        "src/core/caption_requests.js",
         "src/core/captions.js",
         "src/core/player.js",
         "src/core/icon_assets.js",
@@ -30,6 +31,7 @@
         "src/core/font.js",
         "src/services/dict_service.js",
         "src/services/tutor_service.js",
+        "src/services/learning_history_service.js",
         "src/services/log_service.js",
         "src/interactive/drag_controller.js",
         "src/interactive/resize_controller.js",
@@ -62,7 +64,7 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "webRequest"],
   "host_permissions": [
     "https://www.youtube.com/*",
     "http://localhost:8000/*",

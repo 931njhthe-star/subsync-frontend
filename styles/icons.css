@@ -11,6 +11,50 @@
   user-select: none;
 }
 
+.subsync-qb-panel-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  line-height: 0;
+}
+
+.subsync-qb-expand-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  opacity: 1;
+}
+
+.subsync-header-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+}
+
+.subsync-refresh-icon {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  opacity: 1;
+}
+
+.subsync-header-refresh-btn.subsync-refreshing .subsync-refresh-icon {
+  animation: subsync-refresh-spin 700ms linear infinite;
+}
+
+@keyframes subsync-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .subsync-nav-btn {
   display: inline-flex;
   align-items: center;

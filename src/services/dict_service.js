@@ -25,16 +25,34 @@
     async saveWord(word, meaning, sentence) {
       const videoId = SubSync.getVideoId ? SubSync.getVideoId() : "";
       const timestamp = SubSync.player.getCurrentTime();
-      return await SubSync.apiClient.request("/words/save", {
-        method: "POST",
-        body: JSON.stringify({
-          word,
-          meaning,
-          video_id: videoId,
-          timestamp,
-          context_sentence: sentence
-        })
-      });
+      const payload = {
+        word,
+        meaning,
+        video_id: videoId,
+        timestamp,
+        context_sentence: sentence
+      };
+
+      try {
+        const response = await SubSync.apiClient.request("/words/save", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        if (SubSync.learningHistory) {
+          await SubSync.learningHistory.saveWord({
+            ...payload,
+            ...response,
+            local_only: false
+          });
+        }
+        return response;
+      } catch (error) {
+        if (!SubSync.learningHistory) throw error;
+        return await SubSync.learningHistory.saveWord({
+          ...payload,
+          local_only: true
+        });
+      }
     }
   };
 })();

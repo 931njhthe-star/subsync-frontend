@@ -10,6 +10,7 @@ const scriptPanel = fs.readFileSync(path.join(root, "src", "components", "script
 const tutorChat = fs.readFileSync(path.join(root, "src", "components", "tutor_chat.js"), "utf8");
 const iconAssets = fs.readFileSync(path.join(root, "src", "core", "icon_assets.js"), "utf8");
 const iconCss = fs.readFileSync(path.join(root, "styles", "icons.css"), "utf8");
+const themeCss = fs.readFileSync(path.join(root, "styles", "theme.css"), "utf8");
 const searchSvg = fs.readFileSync(path.join(iconDir, "search.svg"), "utf8");
 const collapseSvg = fs.readFileSync(path.join(iconDir, "collapse.svg"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.json"), "utf8"));
@@ -22,7 +23,8 @@ const icons = [
   "settings",
   "script",
   "search",
-  "collapse"
+  "collapse",
+  "refresh"
 ];
 
 test("the original SubSync icon set contains eight local SVG assets", () => {
@@ -80,10 +82,33 @@ test("icon CSS keeps SVG sizing and state styling scoped to SubSync controls", (
   assert.match(iconCss, /subsync-script-collapse-collapsed/);
 });
 
+test("quick bar panel toggle reuses the circular collapse icon", () => {
+  assert.match(layout, /SubSync\.icon\("collapse", "subsync-qb-expand-icon"\)/);
+  assert.match(
+    iconCss,
+    /\.subsync-qb-panel-toggle\s*\{[\s\S]*width:\s*22px[\s\S]*height:\s*22px[\s\S]*padding:\s*0/
+  );
+  assert.match(
+    iconCss,
+    /\.subsync-qb-expand-icon\s*\{[\s\S]*width:\s*22px[\s\S]*height:\s*22px[\s\S]*opacity:\s*1/
+  );
+  assert.match(
+    iconCss,
+    /\.subsync-script-collapse-btn\s+\.subsync-script-collapse-icon\s*\{[\s\S]*opacity:\s*1/
+  );
+});
+
 test("Script header icon and label use a shared vertical alignment box", () => {
   assert.match(iconCss, /\.subsync-script-header-title\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center[\s\S]*line-height:\s*1/);
   assert.match(iconCss, /\.subsync-script-icon\s*\{[\s\S]*display:\s*flex[\s\S]*align-items:\s*center[\s\S]*line-height:\s*0/);
   assert.match(iconCss, /\.subsync-script-header-icon\s*\{[\s\S]*display:\s*block[\s\S]*margin:\s*0/);
+});
+
+test("light theme keeps the Script search icon high-contrast", () => {
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme="light"\]\s+\.subsync-script-search-icon\s*\{[\s\S]*opacity:\s*1[\s\S]*filter:\s*brightness\(0\)\s+saturate\(100%\)/
+  );
 });
 
 test("collapsed Script hover does not restart the panel entrance animation on exit", () => {
@@ -129,4 +154,10 @@ test("search and collapse icons use the neutral circle-chevron treatment", () =>
   assert.doesNotMatch(scriptPanel, /collapseFocused/);
   assert.doesNotMatch(scriptPanel, /addEventListener\("focus"/);
   assert.doesNotMatch(scriptPanel, /addEventListener\("blur"/);
+});
+
+test("main panel exposes a refresh control wired to SubSync refresh", () => {
+  assert.match(layout, /id="subsync-refresh-btn"/);
+  assert.match(layout, /SubSync\.icon\("refresh", "subsync-refresh-icon"\)/);
+  assert.match(layout, /SubSync\.refresh/);
 });

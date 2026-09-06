@@ -8,8 +8,11 @@
   let currentSideContainerEl = null;
   let currentOverlayEl = null;
   let captionExitTimer = null;
+  let positionResetTimer = null;
 
   const POSITION_PROPERTIES = ["left", "top", "right", "bottom", "transform"];
+  const POSITION_RESET_MS = 360;
+  const DEFAULT_OVERLAY_BOTTOM = 60;
 
   function clearInlinePosition(element) {
     if (!element || !element.style) return;
@@ -22,15 +25,66 @@
     });
   }
 
+  function clearPositionResetTimer() {
+    if (positionResetTimer) {
+      clearTimeout(positionResetTimer);
+      positionResetTimer = null;
+    }
+  }
+
+  function getDefaultOverlayPosition(element) {
+    const parent = element?.offsetParent || element?.parentElement || element?.parentNode;
+    if (
+      !parent ||
+      typeof parent.getBoundingClientRect !== "function" ||
+      typeof element.getBoundingClientRect !== "function"
+    ) {
+      return null;
+    }
+
+    const parentRect = parent.getBoundingClientRect();
+    const overlayRect = element.getBoundingClientRect();
+    return {
+      left: parentRect.width / 2,
+      top: parentRect.height - DEFAULT_OVERLAY_BOTTOM - overlayRect.height
+    };
+  }
+
   function resetOverlayPosition() {
     if (!overlayEl) return;
-    clearInlinePosition(overlayEl);
-    overlayEl.classList.remove("subsync-dragging");
+    clearPositionResetTimer();
+
+    const defaultPosition = getDefaultOverlayPosition(overlayEl);
+    overlayEl.classList.remove("subsync-dragging", "subsync-position-resetting");
+    overlayEl.classList.add("subsync-position-resetting");
+
+    // transition이 현재 위치에서 시작하도록 dragged 상태의 축을 고정한다.
+    overlayEl.style.right = "auto";
+    overlayEl.style.bottom = "auto";
+    overlayEl.style.transform = "translateX(-50%)";
+    void overlayEl.offsetWidth;
+
+    if (defaultPosition) {
+      overlayEl.style.left = `${Math.round(defaultPosition.left)}px`;
+      overlayEl.style.top = `${Math.round(defaultPosition.top)}px`;
+    }
+
+    positionResetTimer = setTimeout(() => {
+      if (overlayEl) {
+        clearInlinePosition(overlayEl);
+        overlayEl.classList.remove("subsync-position-resetting");
+      }
+      positionResetTimer = null;
+    }, POSITION_RESET_MS);
   }
 
   function attachPositionReset(element) {
     if (!element || element.__subsyncPositionResetAttached) return;
 
+    element.addEventListener("pointerdown", () => {
+      clearPositionResetTimer();
+      element.classList.remove("subsync-position-resetting");
+    });
     element.addEventListener("dblclick", (event) => {
       event.preventDefault();
       event.stopPropagation();

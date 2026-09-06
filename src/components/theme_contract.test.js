@@ -51,6 +51,64 @@ test("Manifest loads theme runtime and stylesheet", () => {
   assert.match(contentMain, /SubSync\.glassFilter\s*&&\s*SubSync\.glassFilter\.init/);
 });
 
+test("light theme improves Korean subtitle readability without changing other themes", () => {
+  const lightStart = themeCss.indexOf('body[data-subsync-theme="light"]');
+  const lightEnd = themeCss.indexOf('body[data-subsync-theme="glass"]', lightStart);
+  const lightTokens = themeCss.slice(lightStart, lightEnd);
+
+  assert.match(lightTokens, /--subsync-overlay-bg:\s*rgba\(255,\s*255,\s*255,\s*0\.65\)/);
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme="light"\]\s+\.subsync-overlay-ko\s*\{[\s\S]*?color:\s*var\(--subsync-accent-text\)[\s\S]*?font-size:\s*16px[\s\S]*?font-weight:\s*600[\s\S]*?line-height:\s*1\.4[\s\S]*?text-shadow:\s*none/
+  );
+});
+
+test("light theme separates settings, history, and dual-subtitle surfaces", () => {
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-settings-card[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.92\)[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.18\)[\s\S]*box-shadow:/i);
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-saved-item[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.92\)[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.18\)[\s\S]*box-shadow:/i);
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-history-item[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.92\)[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.18\)[\s\S]*box-shadow:/i);
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-msg\.tutor[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.92\)[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.18\)[\s\S]*box-shadow:/i);
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-tutor-box[\s\S]*background:\s*var\(--subsync-overlay-bg\)[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.18\)[\s\S]*box-shadow:/i);
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-subtitle-box[\s\S]*background:\s*var\(--subsync-overlay-bg\)[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.22\)[\s\S]*box-shadow:/i);
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-overlay-content[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.22\)[\s\S]*box-shadow:/i);
+  assert.match(themeCss, /body\[data-subsync-theme="light"\]\s+\.subsync-htab[\s\S]*border:\s*1px\s+solid\s+rgba\(15,\s*23,\s*42,\s*0\.16\)/i);
+});
+
+test("all themes separate settings rows and sections", () => {
+  const expectedDividers = {
+    dark: "rgba(255, 255, 255, 0.14)",
+    light: "rgba(15, 23, 42, 0.12)",
+    glass: "rgba(178, 178, 178, 0.24)"
+  };
+
+  for (const [theme, divider] of Object.entries(expectedDividers)) {
+    const start = themeCss.indexOf(`body[data-subsync-theme="${theme}"]`);
+    const nextStart = themeCss.indexOf("body[data-subsync-theme=", start + 1);
+    const tokens = themeCss.slice(start, nextStart === -1 ? themeCss.length : nextStart);
+    assert.match(tokens, new RegExp(`--subsync-divider:\\s*${divider.replace(/[().,]/g, "\\$&")}`));
+  }
+
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme\] \.subsync-settings-card \.subsync-setting-row \+ \.subsync-setting-row,[\s\S]*?body\[data-subsync-theme\] \.subsync-settings-card \.subsync-setting-section\s*\{[\s\S]*?border-top:\s*1px solid var\(--subsync-divider\)[\s\S]*?padding-top:\s*12px/
+  );
+});
+
+test("glass theme darkens word cards and keeps Korean subtitle surfaces tunable", () => {
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme="glass"\]\s+\.subsync-history-item\s*\{[\s\S]*background:\s*rgba\(24,\s*24,\s*24,\s*0\.78\)/
+  );
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme="glass"\]\s+\.subsync-overlay-ko\s*\{[\s\S]*color:\s*#[0-9a-f]{6}[\s\S]*font-size:\s*16px[\s\S]*font-weight:\s*600[\s\S]*text-shadow:/i
+  );
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme="glass"\]\s+\.subsync-sub-known\s*\{[\s\S]*color:\s*#[0-9a-f]{6}[\s\S]*font-weight:\s*700[\s\S]*text-shadow:/i
+  );
+});
+
 test("theme stylesheet keeps light colors scoped to SubSync surfaces", () => {
   assert.ok(fs.existsSync(themeCssPath));
   assert.match(themeCss, /body\[data-subsync-theme=["']light["']\]/);
@@ -74,8 +132,8 @@ test("theme stylesheet keeps light colors scoped to SubSync surfaces", () => {
   const lightStart = themeCss.indexOf('body[data-subsync-theme="light"]');
   const lightEnd = themeCss.indexOf('body[data-subsync-theme="glass"]', lightStart);
   const lightTokens = themeCss.slice(lightStart, lightEnd);
-  assert.match(lightTokens, /--subsync-panel-bg:\s*rgba\(255,\s*255,\s*255,\s*0\.86\)/);
-  assert.match(lightTokens, /--subsync-overlay-bg:\s*rgba\(255,\s*255,\s*255,\s*0\.70\)/);
+  assert.match(lightTokens, /--subsync-panel-bg:\s*rgba\(255,\s*255,\s*255,\s*0\.65\)/);
+  assert.match(lightTokens, /--subsync-overlay-bg:\s*rgba\(255,\s*255,\s*255,\s*0\.65\)/);
   const componentStyleFiles = ["main.css", "subtitle.css", "script.css", "tutor.css", "modal.css", "interactive.css", "motion.css"];
   for (const fileName of componentStyleFiles) {
     const css = fs.readFileSync(path.join(projectRoot, "styles", fileName), "utf8");

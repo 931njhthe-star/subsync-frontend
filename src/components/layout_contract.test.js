@@ -17,7 +17,11 @@ test("main header does not render the unauthenticated status badge", () => {
 });
 
 test("quick bar uses a panel icon instead of the settings gear", () => {
-  assert.match(layout, /id="subsync-qb-open-btn"[^>]*>▣<\/button>/);
+  assert.match(
+    layout,
+    /id="subsync-qb-open-btn"[^>]*>\$\{SubSync\.icon\("collapse", "subsync-qb-expand-icon"\)\}<\/button>/
+  );
+  assert.doesNotMatch(layout, /id="subsync-qb-open-btn"[^>]*>▣<\/button>/);
   assert.doesNotMatch(layout, /id="subsync-qb-open-btn"[^>]*>⚙️<\/button>/);
 });
 
@@ -25,6 +29,14 @@ test("main layout exposes an inline Script mount and resizer", () => {
   assert.match(layout, /id="subsync-inline-script-area"/);
   assert.match(layout, /SubSync\.resize\.attach\(rootEl/);
   assert.match(layout, /getScriptArea\(\)/);
+});
+
+test("navigation uses one moving active indicator instead of per-tab background swaps", () => {
+  assert.match(layout, /class="subsync-nav-active-indicator"/);
+  assert.match(layout, /function updateNavIndicator\(\)/);
+  assert.match(layout, /updateNavIndicator\(\)/);
+  assert.match(mainCss, /\.subsync-nav-active-indicator[\s\S]*transition:[\s\S]*transform[\s\S]*width/);
+  assert.match(mainCss, /\.subsync-nav-btn\.active\s*\{[\s\S]*background:\s*transparent/);
 });
 
 test("video screen does not render a second Script open button", () => {
@@ -35,6 +47,7 @@ test("video screen does not render a second Script open button", () => {
 test("Script panel title uses the compact Script label", () => {
   assert.match(scriptPanel, /subsync-script-title-text">Script<\/span>/);
   assert.doesNotMatch(scriptPanel, /subsync-script-title-text">전체 Script<\/span>/);
+  assert.match(scriptCss, /\.subsync-script-header-title\s*\{[\s\S]*gap:\s*2px/);
 });
 
 test("Script panel mounts inside the main panel instead of document body", () => {
@@ -85,6 +98,13 @@ test("main panel is positioned below the quick bar when it opens", () => {
   assert.match(layout, /rootEl\.style\.left/);
   assert.match(layout, /rootEl\.style\.top/);
   assert.match(layout, /positionMainPanelBelowQuickBar\(\)/);
+});
+
+test("main panel header double-click resets its position with a return transition", () => {
+  assert.match(layout, /function resetMainPanelPosition\(\)/);
+  assert.match(layout, /addEventListener\("dblclick"/);
+  assert.match(layout, /subsync-position-resetting/);
+  assert.match(mainCss, /\.subsync-container\.subsync-position-resetting[\s\S]*left[\s\S]*top/);
 });
 
 test("main panel uses a macOS-style spring transition for opening and closing", () => {

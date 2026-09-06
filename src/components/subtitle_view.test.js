@@ -131,6 +131,8 @@ function loadSubtitleView() {
     document,
     window: null,
     console,
+    setTimeout,
+    clearTimeout,
     getComputedStyle() {
       return { position: "relative" };
     }
@@ -157,9 +159,10 @@ test("caption CSS does not move when YouTube controls toggle autohide", () => {
 
   assert.doesNotMatch(css, /\.ytp-autohide\s+\.subsync-video-caption-overlay/);
   assert.match(css, /\.subsync-video-caption-overlay[\s\S]*bottom:\s*60px/);
+  assert.match(css, /\.subsync-video-caption-overlay\.subsync-position-resetting[\s\S]*left[\s\S]*top/);
 });
 
-test("double-clicking the video caption restores its default position", () => {
+test("double-clicking the video caption animates back to its default position", async () => {
   const { document } = loadSubtitleView();
   const overlay = document.getElementById("subsync-video-caption-overlay");
   assert.ok(overlay);
@@ -173,6 +176,12 @@ test("double-clicking the video caption restores its default position", () => {
   const event = overlay.dispatch("dblclick");
 
   assert.equal(event.defaultPrevented, true);
+  assert.equal(overlay.classList.contains("subsync-position-resetting"), true);
+  assert.notEqual(overlay.style.left, "");
+  assert.notEqual(overlay.style.top, "");
+
+  await new Promise((resolve) => setTimeout(resolve, 380));
+  assert.equal(overlay.classList.contains("subsync-position-resetting"), false);
   assert.equal(overlay.style.left, "");
   assert.equal(overlay.style.top, "");
   assert.equal(overlay.style.right, "");

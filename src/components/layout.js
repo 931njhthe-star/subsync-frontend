@@ -6,10 +6,52 @@
   let quickBarEl = null;
   let currentScreen = "video"; // "video" | "script" | "tutor" | "words" | "history" | "settings"
   let panelCloseTimer = null;
+  let positionResetTimer = null;
+  let navIndicatorInitialized = false;
 
   const PANEL_GAP = 10;
   const VIEWPORT_MARGIN = 12;
   const PANEL_TRANSITION_MS = 360;
+  const POSITION_RESET_MS = 420;
+  const SCREEN_ORDER = Object.freeze(["video", "tutor", "words", "history", "settings"]);
+
+  function getScreenDirection(nextScreen) {
+    const currentIndex = SCREEN_ORDER.indexOf(currentScreen);
+    const nextIndex = SCREEN_ORDER.indexOf(nextScreen);
+    if (currentIndex < 0 || nextIndex < 0) return "forward";
+    return nextIndex >= currentIndex ? "forward" : "backward";
+  }
+
+  function updateNavIndicator() {
+    if (!rootEl) return;
+    const navTabs = rootEl.querySelector(".subsync-nav-tabs");
+    const activeButton = navTabs?.querySelector(".subsync-nav-btn.active");
+    const indicator = navTabs?.querySelector(".subsync-nav-active-indicator");
+    if (!navTabs || !activeButton || !indicator) return;
+
+    const navRect = navTabs.getBoundingClientRect();
+    const activeRect = activeButton.getBoundingClientRect();
+    const offsetLeft = Math.round(activeRect.left - navRect.left);
+    const width = Math.round(activeRect.width);
+
+    if (!navIndicatorInitialized) {
+      indicator.classList.add("subsync-nav-active-indicator-initial");
+    }
+    indicator.style.width = `${width}px`;
+    indicator.style.transform = `translate3d(${offsetLeft}px, 0, 0)`;
+
+    if (!navIndicatorInitialized) {
+      const releaseInitial = () => {
+        indicator.classList.remove("subsync-nav-active-indicator-initial");
+      };
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(releaseInitial);
+      } else {
+        setTimeout(releaseInitial, 0);
+      }
+      navIndicatorInitialized = true;
+    }
+  }
 
   function viewportSize() {
     return {
@@ -63,8 +105,32 @@
     clearInlineStyle(rootEl, "transform");
   }
 
+  function resetMainPanelPosition() {
+    if (!rootEl) return;
+    if (positionResetTimer) clearTimeout(positionResetTimer);
+
+    rootEl.classList.remove("subsync-dragging", "subsync-resizing");
+    rootEl.classList.add("subsync-position-resetting");
+    void rootEl.offsetWidth;
+    positionMainPanelBelowQuickBar();
+
+    positionResetTimer = setTimeout(() => {
+      rootEl?.classList.remove("subsync-position-resetting");
+      positionResetTimer = null;
+    }, POSITION_RESET_MS);
+  }
+
+  function cancelMainPanelPositionReset() {
+    if (positionResetTimer) {
+      clearTimeout(positionResetTimer);
+      positionResetTimer = null;
+    }
+    rootEl?.classList.remove("subsync-position-resetting");
+  }
+
   function openMainPanel() {
     if (!rootEl) return;
+    cancelMainPanelPositionReset();
     if (panelCloseTimer) {
       clearTimeout(panelCloseTimer);
       panelCloseTimer = null;
@@ -85,6 +151,7 @@
 
   function closeMainPanel() {
     if (!rootEl) return;
+    cancelMainPanelPositionReset();
     if (panelCloseTimer) clearTimeout(panelCloseTimer);
 
     clearInlineStyle(rootEl, "transform");
@@ -111,7 +178,7 @@
         <span class="subsync-qb-drag-handle" title="퀵바 드래그" aria-label="퀵바 이동">⠿</span>
         <button id="subsync-toggle-main-btn" class="subsync-qb-toggle">SubSync <span class="subsync-dot on">● ON</span></button>
         <button id="subsync-qb-script-btn" class="subsync-qb-script" title="전체 스크립트 열기">${SubSync.icon("script", "subsync-qb-icon")}<span>스크립트</span></button>
-        <button id="subsync-qb-open-btn" class="subsync-qb-panel-toggle" title="학습 패널 열기" aria-controls="subsync-root" aria-expanded="true">▣</button>
+        <button id="subsync-qb-open-btn" class="subsync-qb-panel-toggle" title="학습 패널 열기" aria-controls="subsync-root" aria-expanded="true">${SubSync.icon("collapse", "subsync-qb-expand-icon")}</button>
       `;
       document.body.appendChild(quickBarEl);
 
@@ -130,12 +197,14 @@
             <span class="subsync-brand">SubSync</span>
           </div>
           <div class="subsync-header-controls">
+            <button id="subsync-refresh-btn" class="subsync-btn-small subsync-header-refresh-btn" title="SubSync 새로고침" aria-label="SubSync 새로고침">${SubSync.icon("refresh", "subsync-refresh-icon")}</button>
             <button id="subsync-auth-btn" class="subsync-btn-small">로그인</button>
             <button id="subsync-close-btn" class="subsync-btn-close">×</button>
           </div>
         </div>
 
         <div class="subsync-nav-tabs">
+          <span class="subsync-nav-active-indicator" aria-hidden="true"></span>
           <button class="subsync-nav-btn active" data-screen="video">${SubSync.icon("video-learning", "subsync-nav-icon")}<span>영상학습</span></button>
           <button class="subsync-nav-btn" data-screen="tutor">${SubSync.icon("ai-tutor", "subsync-nav-icon")}<span>AI 튜터</span></button>
           <button class="subsync-nav-btn" data-screen="words">${SubSync.icon("vocabulary", "subsync-nav-icon")}<span>단어장</span></button>
@@ -167,6 +236,8 @@
 
       positionMainPanelBelowQuickBar();
       updatePanelToggleState(true);
+      updateNavIndicator();
+      window.addEventListener("resize", updateNavIndicator);
 
       if (SubSync.drag && SubSync.drag.attach) {
         SubSync.drag.attach(rootEl, rootEl.querySelector(".subsync-panel-header"));
@@ -184,8 +255,29 @@
 
     bindEvents() {
       // 닫기 / 열기
+      const refreshButton = document.getElementById("subsync-refresh-btn");
+      refreshButton?.addEventListener("click", async () => {
+        if (refreshButton.disabled) return;
+        refreshButton.disabled = true;
+        refreshButton.classList.add("subsync-refreshing");
+        try {
+          if (SubSync.refresh) await SubSync.refresh();
+        } finally {
+          refreshButton.disabled = false;
+          refreshButton.classList.remove("subsync-refreshing");
+        }
+      });
+
       document.getElementById("subsync-close-btn").addEventListener("click", () => {
         closeMainPanel();
+      });
+      rootEl.querySelector(".subsync-panel-header")?.addEventListener("dblclick", (event) => {
+        if (event.target?.closest?.("button, a, input, textarea, select")) return;
+        event.preventDefault();
+        resetMainPanelPosition();
+      });
+      rootEl.querySelector(".subsync-panel-header")?.addEventListener("pointerdown", () => {
+        cancelMainPanelPositionReset();
       });
       document.getElementById("subsync-qb-open-btn").addEventListener("click", () => {
         if (rootEl.classList.contains("subsync-panel-closed") || rootEl.style.display === "none") {
@@ -231,22 +323,37 @@
     },
 
     switchScreen(screenName) {
-      currentScreen = screenName;
-      rootEl.querySelectorAll(".subsync-nav-btn").forEach((b) => {
-        b.classList.toggle("active", b.dataset.screen === screenName);
-      });
+      if (!rootEl || !screenName) return;
 
-      rootEl.querySelectorAll(".subsync-screen-panel").forEach((panel) => {
-        panel.classList.remove("subsync-screen-entering");
-        panel.style.display = "none";
-      });
+      if (screenName !== currentScreen) {
+        const direction = getScreenDirection(screenName);
+        const directionClass =
+          direction === "forward"
+            ? "subsync-screen-direction-forward"
+            : "subsync-screen-direction-backward";
+        currentScreen = screenName;
+        rootEl.querySelectorAll(".subsync-nav-btn").forEach((b) => {
+          b.classList.toggle("active", b.dataset.screen === screenName);
+        });
 
-      const activePanel = document.getElementById(`subsync-screen-${screenName}`);
-      if (activePanel) {
-        activePanel.style.display = "flex";
-        void activePanel.offsetWidth;
-        activePanel.classList.add("subsync-screen-entering");
+        rootEl.querySelectorAll(".subsync-screen-panel").forEach((panel) => {
+          panel.classList.remove(
+            "subsync-screen-entering",
+            "subsync-screen-direction-forward",
+            "subsync-screen-direction-backward"
+          );
+          panel.style.display = "none";
+        });
+
+        const activePanel = document.getElementById(`subsync-screen-${screenName}`);
+        if (activePanel) {
+          activePanel.style.display = "flex";
+          void activePanel.offsetWidth;
+          activePanel.classList.add("subsync-screen-entering", directionClass);
+        }
       }
+
+      updateNavIndicator();
 
       // 화면별 동적 렌더링 호출
       if (screenName === "words") {
@@ -295,6 +402,7 @@
     getScriptArea() { return document.getElementById("subsync-inline-script-area"); },
     openMainPanel,
     closeMainPanel,
-    repositionMainPanel: positionMainPanelBelowQuickBar
+    repositionMainPanel: positionMainPanelBelowQuickBar,
+    resetMainPanelPosition
   };
 })();

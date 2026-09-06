@@ -10,7 +10,8 @@
     settings: "settings.svg",
     script: "script.svg",
     search: "search.svg",
-    collapse: "collapse.svg"
+    collapse: "collapse.svg",
+    refresh: "refresh.svg"
   });
 
   function iconUrl(name) {

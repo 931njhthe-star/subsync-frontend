@@ -6,9 +6,10 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.subsync-word:hover {
-  background: var(--subsync-accent, #3f7ff5);
-  color: #fff;
+.subsync-word:hover,
+.subsync-word.subsync-word-hovered {
+  background: var(--subsync-accent, #3f7ff5) !important;
+  color: #fff !important;
 }
 
 /* Hover 툴팁 */

@@ -82,3 +82,11 @@
 - 자막 source 실패 시 레거시의 captions 모듈·tracklist·reload acquisition을 현재 영상별 warm-up에 이식하고 signed timedtext 확보 후 native caption 상태를 복구하도록 연결
 - 저장소에서 문장 탭과 단어 타임스탬프를 제거하고, 저장소 단어 별 취소 시 record ID 기반 삭제·목록 즉시 갱신·Hover 팝업 종료를 보장
 - Google OAuth 연결 준비: MV3 service worker PKCE OAuth flow, Supabase 공개 설정 파일, 세션 갱신·로그아웃, Google OAuth 설정 가이드를 추가
+- Google 로그인 아이콘 로드 실패 시 확장 URL 대신 inline 멀티컬러 G fallback으로 교체해 깨진 이미지 표시를 방지
+- AI Tutor 답변 준비 indicator를 일반 튜터 답변과 같은 왼쪽 시작점에 정렬하고 화이트 테마에서는 검정 점·glow로 표시
+- 자막 HTTP 429 안내 문구를 잠시 후 새로고침 안내로 간소화
+- 자막 로딩 상태에 기준 이미지와 같은 32px 12-bar radial spinner를 CSS로 추가하고 reduced-motion 대응 및 Chromium 렌더링·회귀 테스트를 검증
+- 단어 mouseenter/mouseleave에 명시적 `subsync-word-hovered` 상태를 연결하고 외부 페이지 스타일 cascade에도 채움 배경이 유지되도록 영상·패널 자막 hover CSS와 회귀 테스트를 보강
+- hover 툴팁 높이를 기준으로 단어 영역과 겹치지 않게 위·아래 위치를 계산하고 위치 회귀 테스트를 추가
+- Glass 저장소 단어 탭의 저장 단어 카드를 어두운 차콜 표면으로 조정해 배경 영상 위 텍스트 대비를 개선
+- Glass Script 타임스탬프를 한국어 자막과 동일한 `var(--subsync-text-muted)` 색으로 조정해 숫자 가독성을 개선

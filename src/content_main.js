@@ -273,7 +273,7 @@
     if (status.state === "ready") return "자막 준비 완료 · 영상을 재생하세요.";
     if (status.state === "warning") {
       if (status.phase === "known" && status.code === "http" && status.httpStatus === 429) {
-        return "한국어 자막 요청이 제한됐습니다 (HTTP 429). VPN 서버를 바꾸거나 잠시 후 새로고침하세요.";
+        return "한국어 자막 요청이 제한됐습니다 (HTTP 429). 잠시 후 새로고침하세요.";
       }
       if (status.phase === "known" && status.code === "empty") {
         return "영어 자막은 복구됐지만 YouTube가 한국어 자막에 빈 응답을 반환했습니다.";
@@ -284,7 +284,7 @@
       return "일부 자막만 불러왔습니다.";
     }
     if (status.code === "http" && status.httpStatus === 429) {
-      return "YouTube 자막 요청이 제한됐습니다 (HTTP 429). VPN 서버를 바꾸거나 잠시 후 새로고침하세요.";
+      return "YouTube 자막 요청이 제한됐습니다 (HTTP 429). 잠시 후 새로고침하세요.";
     }
     if (status.code === "http") {
       return `YouTube 자막 요청에 실패했습니다 (HTTP ${status.httpStatus || "오류"}).`;

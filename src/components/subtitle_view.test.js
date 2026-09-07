@@ -162,6 +162,43 @@ test("caption CSS does not move when YouTube controls toggle autohide", () => {
   assert.match(css, /\.subsync-video-caption-overlay\.subsync-position-resetting[\s\S]*left[\s\S]*top/);
 });
 
+test("caption loading state shows a centered radial spinner", () => {
+  const cssPath = path.join(root, "styles", "subtitle.css");
+  const css = fs.readFileSync(cssPath, "utf8");
+
+  assert.match(
+    css,
+    /\.subsync-subtitle-box\[data-caption-state="loading"\]\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?justify-content:\s*center;/
+  );
+  const spinnerBlock = css.match(
+    /\.subsync-subtitle-box\[data-caption-state="loading"\]::before\s*\{([\s\S]*?)\}/
+  )?.[1] || "";
+  const spinnerWidth = spinnerBlock.match(/width:\s*(\d+)px/)?.[1];
+  assert.ok(spinnerWidth, "spinner width should be explicitly tunable");
+  assert.match(spinnerBlock, new RegExp(`height:\\s*${spinnerWidth}px`));
+  assert.match(spinnerBlock, new RegExp(`flex:\\s*0 0 ${spinnerWidth}px`));
+  assert.match(
+    spinnerBlock,
+    /background:\s*transparent\s+url\(["']data:image\/svg\+xml[\s\S]*?\)\s+center\s*\/\s*contain\s+no-repeat;/
+  );
+  assert.match(spinnerBlock, /transform-origin:\s*center;/);
+  assert.match(spinnerBlock, /animation:\s*subsync-caption-loading-spin/);
+  const dataUri = css.match(/background:\s*transparent\s+url\(["'](data:image\/svg\+xml;base64,[^"')]+)["']\)/)?.[1];
+  assert.ok(dataUri);
+  const svg = Buffer.from(dataUri.split(",")[1], "base64").toString("utf8");
+  assert.equal((svg.match(/<path\s/g) || []).length, 12);
+  assert.match(svg, /stroke-linecap=['"]round['"]/);
+  assert.doesNotMatch(
+    css,
+    /\.subsync-subtitle-box\[data-caption-state="loading"\]::before[\s\S]*?-webkit-mask:\s*url/
+  );
+  assert.match(css, /@keyframes\s+subsync-caption-loading-spin[\s\S]*?rotate\(360deg\)/);
+  assert.match(
+    css,
+    /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.subsync-subtitle-box\[data-caption-state="loading"\]::before[\s\S]*?animation:\s*none;/
+  );
+});
+
 test("double-clicking the video caption animates back to its default position", async () => {
   const { document } = loadSubtitleView();
   const overlay = document.getElementById("subsync-video-caption-overlay");

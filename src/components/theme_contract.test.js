@@ -97,7 +97,15 @@ test("all themes separate settings rows and sections", () => {
 test("glass theme darkens word cards and keeps Korean subtitle surfaces tunable", () => {
   assert.match(
     themeCss,
+    /body\[data-subsync-theme="glass"\]\s+\.subsync-saved-item\s*\{\s*background:\s*rgba\(24,\s*24,\s*24,\s*0\.78\)[\s\S]*?border-color:\s*rgba\(178,\s*178,\s*178,\s*0\.32\)[\s\S]*?box-shadow:/
+  );
+  assert.match(
+    themeCss,
     /body\[data-subsync-theme="glass"\]\s+\.subsync-history-item\s*\{[\s\S]*background:\s*rgba\(24,\s*24,\s*24,\s*0\.78\)/
+  );
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme="glass"\]\s+\.subsync-script-time\s*\{\s*color:\s*var\(--subsync-text-muted\)/
   );
   assert.match(
     themeCss,

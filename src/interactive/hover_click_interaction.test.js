@@ -19,6 +19,8 @@ class FakeElement {
     this.disabled = false;
     this.listeners = new Map();
     this._innerHTML = "";
+    this.offsetWidth = tagName.toLowerCase() === "div" ? 220 : 0;
+    this.offsetHeight = tagName.toLowerCase() === "div" ? 72 : 0;
   }
 
   get classList() {
@@ -228,6 +230,33 @@ test("hover preview remains open while moving from the word into the tooltip", a
   tooltip.dispatchEvent("mouseleave");
   await wait(500);
   assert.equal(tooltip.style.display, "none");
+});
+
+test("hover tooltip is placed outside the hovered token bounds", async () => {
+  const context = createContext();
+  const SubSync = context.__SubSync;
+  SubSync.settings = { get: () => true };
+  SubSync.dictService = {
+    async getHoverMeaning() {
+      return { meanings: ["어떤"] };
+    }
+  };
+
+  loadScript(context, "hover_tooltip.js");
+
+  const target = context.document.createElement("span");
+  target.getBoundingClientRect = () => ({ left: 100, top: 100, bottom: 120, right: 180 });
+  context.document.body.appendChild(target);
+  SubSync.hoverTooltip.show("any", target, "Ask any question.");
+  await wait(20);
+
+  const tooltip = context.document.querySelector(".subsync-hover-tooltip");
+  const tooltipTop = Number.parseFloat(tooltip.style.top);
+  assert.ok(Number.isFinite(tooltipTop));
+  assert.ok(
+    tooltipTop + tooltip.offsetHeight <= target.getBoundingClientRect().top,
+    "tooltip must not cover the hovered token"
+  );
 });
 
 test("hover tooltip CTA opens the persistent detail interaction", async () => {

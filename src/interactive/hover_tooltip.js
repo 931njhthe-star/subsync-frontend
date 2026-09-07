@@ -154,8 +154,43 @@
   function positionTooltip(targetEl) {
     if (!targetEl || !tooltipEl) return;
     const rect = targetEl.getBoundingClientRect();
-    tooltipEl.style.left = `${Math.max(8, rect.left + window.scrollX)}px`;
-    tooltipEl.style.top = `${Math.max(8, rect.top + window.scrollY - 52)}px`;
+    const scrollX = Number(window.scrollX) || 0;
+    const scrollY = Number(window.scrollY) || 0;
+    const margin = 8;
+    const gap = 8;
+    const tooltipRect = typeof tooltipEl.getBoundingClientRect === "function"
+      ? tooltipEl.getBoundingClientRect()
+      : {};
+    const tooltipWidth = Number(tooltipEl.offsetWidth) || Number(tooltipRect.width) || 0;
+    const tooltipHeight = Number(tooltipEl.offsetHeight) || Number(tooltipRect.height) || 0;
+    const viewportWidth = Number(window.innerWidth);
+    const viewportHeight = Number(window.innerHeight);
+    const targetBottom = Number.isFinite(Number(rect.bottom))
+      ? Number(rect.bottom)
+      : Number(rect.top || 0) + Number(rect.height || 0);
+
+    let left = Number(rect.left || 0) + scrollX;
+    if (Number.isFinite(viewportWidth) && tooltipWidth > 0) {
+      left = Math.min(left, scrollX + viewportWidth - tooltipWidth - margin);
+    }
+    left = Math.max(scrollX + margin, left);
+
+    const targetTop = Number(rect.top || 0) + scrollY;
+    const topBoundary = scrollY + margin;
+    const bottomBoundary = Number.isFinite(viewportHeight)
+      ? scrollY + viewportHeight - margin
+      : Infinity;
+    let top = targetTop - tooltipHeight - gap;
+    if (top < topBoundary) top = targetBottom + scrollY + gap;
+    if (top + tooltipHeight > bottomBoundary && tooltipHeight > 0) {
+      const aboveTop = targetTop - tooltipHeight - gap;
+      top = aboveTop >= topBoundary
+        ? aboveTop
+        : Math.max(topBoundary, bottomBoundary - tooltipHeight);
+    }
+
+    tooltipEl.style.left = `${Math.round(left)}px`;
+    tooltipEl.style.top = `${Math.round(Math.max(topBoundary, top))}px`;
   }
 
   function renderContent(word, sentence, targetEl, meaningText, isLoading) {
@@ -255,6 +290,7 @@
 
     el.appendChild(top);
     el.appendChild(detailButton);
+    positionTooltip(targetEl);
   }
 
   SubSync.hoverTooltip = {
@@ -285,7 +321,6 @@
       const el = ensureTooltip();
       const wasHidden = el.style.display === "none" || !el.classList.contains("subsync-tooltip-visible");
       clearExitTimer();
-      positionTooltip(targetEl);
       el.style.display = "block";
       el.classList.remove("subsync-tooltip-exiting");
       if (wasHidden) {

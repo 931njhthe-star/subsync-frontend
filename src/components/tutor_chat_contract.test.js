@@ -6,6 +6,7 @@ const vm = require("node:vm");
 
 const tutorChat = fs.readFileSync(path.join(__dirname, "tutor_chat.js"), "utf8");
 const tutorCss = fs.readFileSync(path.join(__dirname, "..", "..", "styles", "tutor.css"), "utf8");
+const themeCss = fs.readFileSync(path.join(__dirname, "..", "..", "styles", "theme.css"), "utf8");
 const tutorService = fs.readFileSync(path.join(__dirname, "..", "services", "tutor_service.js"), "utf8");
 const contentMain = fs.readFileSync(path.join(__dirname, "..", "content_main.js"), "utf8");
 
@@ -35,6 +36,20 @@ test("Tutor shows and removes an animated answer-preparation indicator", () => {
   assert.match(tutorCss, /animation-name:\s*subsync-tutor-thinking-wave/);
   assert.match(tutorCss, /animation-delay/);
   assert.match(tutorCss, /prefers-reduced-motion/);
+});
+
+test("Tutor left-aligns the answer-preparation indicator with tutor messages", () => {
+  assert.match(
+    tutorCss,
+    /\.subsync-msg\.subsync-msg-thinking\s*\{[\s\S]*?align-self:\s*flex-start;[\s\S]*?display:\s*flex;[\s\S]*?justify-content:\s*center;/
+  );
+});
+
+test("light theme renders the Tutor answer-preparation dots in black", () => {
+  assert.match(
+    themeCss,
+    /body\[data-subsync-theme="light"\]\s+\.subsync-tutor-box\s+\.subsync-tutor-thinking-dot\s*\{[\s\S]*?background:\s*#000(?:000)?;/
+  );
 });
 
 class TutorTestElement {

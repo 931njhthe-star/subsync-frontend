@@ -42,9 +42,29 @@
     return SubSync.icon("google", "subsync-auth-google-icon");
   }
 
+  function googleButtonFallbackMarkup() {
+    return `<svg class="subsync-ui-icon subsync-auth-google-icon subsync-auth-google-icon-fallback" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="#4285F4" d="M21.35 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.42Z"/>
+      <path fill="#34A853" d="M12 21.5c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.54 0-4.7-1.72-5.47-4.03H3.29v2.53A9.74 9.74 0 0 0 12 21.5Z"/>
+      <path fill="#FBBC05" d="M6.53 12.66A5.86 5.86 0 0 1 6.22 11c0-.58.11-1.15.31-1.66V6.81H3.29A9.74 9.74 0 0 0 2.25 11c0 1.51.36 2.94 1.04 4.19l3.24-2.53Z"/>
+      <path fill="#EA4335" d="M12 5.31c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 2.37 14.63 1.5 12 1.5a9.74 9.74 0 0 0-8.71 5.31l3.24 2.53C7.3 7.03 9.46 5.31 12 5.31Z"/>
+    </svg>`;
+  }
+
+  function bindGoogleIconFallback(button) {
+    const image = button?.querySelector("img.subsync-auth-google-icon");
+    if (!image) return;
+    image.addEventListener("error", () => {
+      const template = document.createElement("template");
+      template.innerHTML = googleButtonFallbackMarkup();
+      image.replaceWith(template.content.firstElementChild);
+    }, { once: true });
+  }
+
   function renderGoogleButton(button, label, isBusy = false) {
     if (!button) return;
     button.innerHTML = googleButtonMarkup();
+    bindGoogleIconFallback(button);
     button.setAttribute("aria-label", label);
     button.title = label;
     if (isBusy) {
@@ -84,6 +104,8 @@
         </div>
       </div>
     `;
+
+    bindGoogleIconFallback(document.getElementById("subsync-auth-google-btn"));
 
     document.getElementById("subsync-auth-cancel-btn")?.addEventListener("click", () => {
       hideModal();

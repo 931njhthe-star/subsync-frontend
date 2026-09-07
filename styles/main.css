@@ -464,10 +464,6 @@
   font-weight: 700;
   color: var(--subsync-accent-text, #66a0ff);
 }
-.subsync-saved-time {
-  font-size: 11px;
-  color: var(--subsync-blue, #3f7ff5);
-}
 .subsync-saved-meaning {
   font-size: 13px;
   color: #ced6e0;

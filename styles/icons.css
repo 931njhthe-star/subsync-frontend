@@ -234,7 +234,84 @@
   opacity: 1;
 }
 
+.subsync-tt-save-icon {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.subsync-tt-save-btn.subsync-tt-save-saved .subsync-tt-save-icon {
+  opacity: 1;
+  filter: drop-shadow(0 0 3px rgba(255, 213, 74, 0.95));
+}
+
+
+.subsync-popup-save-icon {
+  width: 12px;
+  height: 12px;
+  margin: 0 4px 0 0;
+  opacity: 1;
+}
+
+.subsync-popup-save-btn.subsync-popup-save-saved .subsync-popup-save-icon {
+  filter: drop-shadow(0 0 3px rgba(255, 213, 74, 0.95));
+}
+
+@keyframes subsync-save-icon-on {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.68) rotate(-18deg);
+    filter: drop-shadow(0 0 0 rgba(255, 213, 74, 0));
+  }
+  58% {
+    opacity: 1;
+    transform: scale(1.18) rotate(7deg);
+    filter: drop-shadow(0 0 8px rgba(255, 213, 74, 0.95));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 3px rgba(255, 213, 74, 0.95));
+  }
+}
+
+@keyframes subsync-save-icon-off {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 3px rgba(255, 213, 74, 0.95));
+  }
+  52% {
+    opacity: 0.55;
+    transform: scale(0.8) rotate(-8deg);
+    filter: drop-shadow(0 0 0 rgba(255, 213, 74, 0));
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1) rotate(0deg);
+    filter: none;
+  }
+}
+
+.subsync-tt-save-icon.subsync-save-icon-on,
+.subsync-popup-save-icon.subsync-save-icon-on {
+  animation: subsync-save-icon-on 360ms cubic-bezier(0.22, 1.18, 0.36, 1) both;
+}
+
+.subsync-tt-save-icon.subsync-save-icon-off,
+.subsync-popup-save-icon.subsync-save-icon-off {
+  animation: subsync-save-icon-off 280ms cubic-bezier(0.22, 1.12, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .subsync-tt-save-icon.subsync-save-icon-on,
+  .subsync-tt-save-icon.subsync-save-icon-off,
+  .subsync-popup-save-icon.subsync-save-icon-on,
+  .subsync-popup-save-icon.subsync-save-icon-off {
+    animation: none;
+  }
+
   .subsync-script-panel-container.subsync-script-panel-collapsed {
     transition: none;
   }

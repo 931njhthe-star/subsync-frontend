@@ -6,6 +6,7 @@
   const MAX_VIDEO_HISTORY = 100;
   const MAX_SAVED_WORDS = 500;
 
+
   let state = null;
   let loadPromise = null;
 
@@ -127,6 +128,7 @@
       state.savedWords = state.savedWords.filter((item) => item.id !== id);
       await persist();
     },
+
 
     async recordWatch(videoId, durationSec, metadata = {}) {
       await load();

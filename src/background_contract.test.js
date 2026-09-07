@@ -12,6 +12,10 @@ test("manifest grants passive webRequest observation for YouTube captions", () =
   assert.ok(manifest.host_permissions.includes("https://www.youtube.com/*"));
 });
 
+test("manifest grants the exact local Tutor API origin used by the client", () => {
+  assert.ok(manifest.host_permissions.includes("http://127.0.0.1:8000/*"));
+});
+
 test("loads caption request helpers before the content caption engine", () => {
   const scripts = manifest.content_scripts.flatMap((entry) => entry.js || []);
   assert.ok(scripts.includes("src/core/caption_requests.js"));

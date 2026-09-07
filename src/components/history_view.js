@@ -1,4 +1,4 @@
-// 학습 기록 화면 (단어 학습, 영상 시청 기록)
+// 저장소 화면 (단어, 시청기록)
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
@@ -58,7 +58,7 @@
       if (!isAuthed) {
         containerEl.innerHTML = `
           <div class="subsync-view-empty">
-            <p>나의 학습 기록을 확인하려면 로그인이 필요합니다.</p>
+            <p>저장소를 확인하려면 로그인이 필요합니다.</p>
             <button id="subsync-history-login-btn" class="subsync-btn-primary">로그인 / 회원가입</button>
           </div>
         `;
@@ -69,53 +69,38 @@
       }
 
       containerEl.innerHTML = `
-        <div class="subsync-history-tabs">
-          <button class="subsync-htab active" data-tab="words">단어 기록</button>
-          <button class="subsync-htab" data-tab="video">시청 기록</button>
+        <div class="subsync-history-tabs" role="tablist" aria-label="저장소 분류">
+          <button class="subsync-htab active" data-tab="words" role="tab" aria-selected="true">단어</button>
+          <button class="subsync-htab" data-tab="video" role="tab" aria-selected="false">시청기록</button>
         </div>
         <div class="subsync-history-content" id="subsync-history-tab-body"></div>
       `;
 
       const tabBody = containerEl.querySelector("#subsync-history-tab-body");
-      await this.renderWordsHistory(tabBody);
+      await this.renderWords(tabBody);
 
       containerEl.querySelectorAll(".subsync-htab").forEach((tabBtn) => {
         tabBtn.addEventListener("click", () => {
-          containerEl.querySelectorAll(".subsync-htab").forEach((button) => button.classList.remove("active"));
-          tabBtn.classList.add("active");
+          containerEl.querySelectorAll(".subsync-htab").forEach((button) => {
+            const isActive = button === tabBtn;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-selected", String(isActive));
+          });
           const tab = tabBtn.dataset.tab;
-          void (tab === "words" ? this.renderWordsHistory(tabBody) : this.renderVideoHistory(tabBody));
+          void (tab === "words" ? this.renderWords(tabBody) : this.renderVideoHistory(tabBody));
         });
       });
     },
 
-    async renderWordsHistory(containerEl) {
+    async renderWords(containerEl) {
       if (!containerEl) return;
-      containerEl.innerHTML = `<div class="subsync-view-loading">단어 기록을 불러오는 중...</div>`;
-
-      const items = historyService() ? await historyService().getWordHistory() : [];
-      if (!items.length) {
-        containerEl.innerHTML = `<div class="subsync-view-empty">아직 학습한 단어가 없습니다.</div>`;
+      if (SubSync.savedWordsView?.render) {
+        await SubSync.savedWordsView.render(containerEl);
         return;
       }
-
-      containerEl.innerHTML = `
-        <div class="subsync-history-local-note">이 브라우저에 저장된 단어 학습 활동</div>
-        <div class="subsync-history-list">
-          ${items.map((item) => `
-            <div class="subsync-history-item">
-              <div class="subsync-history-item-head">
-                <div class="subsync-h-word">${escapeHtml(item.word)}</div>
-                <span class="subsync-history-activity">${item.activity === "saved" ? "저장" : "클릭 학습"}</span>
-              </div>
-              ${item.meaning ? `<div class="subsync-h-meaning">${escapeHtml(item.meaning)}</div>` : ""}
-              ${item.context_sentence ? `<div class="subsync-h-context">“${escapeHtml(item.context_sentence)}”</div>` : ""}
-              <div class="subsync-h-date">${formatDate(item.created_at || item.saved_at)}</div>
-            </div>
-          `).join("")}
-        </div>
-      `;
+      containerEl.innerHTML = `<div class="subsync-view-empty">저장된 단어 화면을 불러올 수 없습니다.</div>`;
     },
+
 
     async renderVideoHistory(containerEl) {
       if (!containerEl) return;

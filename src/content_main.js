@@ -3,6 +3,7 @@
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
   let currentVideoId = null;
+  let currentPageUrl = null;
   let subtitles = [];
   let workingUrl = null;
   let tracks = [];
@@ -14,15 +15,177 @@
   let acceptingCaptionMessages = false;
   let nextBuildId = 0;
   let buildInFlight = null;
+  let pendingBuildRetry = false;
+  const captionRetryDelays = [350, 900, 1800, 3500];
+  const navigationRetryDelays = [500, 350, 700, 1200];
+  let captionRetryTimer = null;
+  let captionRetryState = null;
+  let navigationLoadTimer = null;
+  let navigationLoadToken = 0;
   let lastBuildKey = null;
   let nextCaptionFetchId = 0;
   const pendingCaptionFetches = new Map();
+  let captionWarmupRequestedKey = null;
+  let captionWarmupStopKey = null;
 
   function cancelPendingCaptionFetches() {
     for (const pending of pendingCaptionFetches.values()) {
       pending.reject(new Error("caption request superseded"));
     }
     pendingCaptionFetches.clear();
+  }
+
+  function cancelCaptionRetryTimer() {
+    if (captionRetryTimer !== null) {
+      clearTimeout(captionRetryTimer);
+      captionRetryTimer = null;
+    }
+  }
+
+  function clearCaptionRetry() {
+    cancelCaptionRetryTimer();
+    captionRetryState = null;
+  }
+
+  function hasPoToken(url) {
+    try {
+      return Boolean(new URL(url).searchParams.get("pot"));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isCaptionWarmupEligible(status) {
+    if (!status || !status.code) return true;
+    if (["empty", "no-cues", "network"].includes(status.code)) return true;
+    return (
+      status.code === "http" &&
+      [401, 403, 429].includes(Number(status.httpStatus))
+    );
+  }
+
+  function captionWarmupKey(videoId, requestId) {
+    return `${String(videoId || "")}:${String(requestId || "")}`;
+  }
+
+  function requestCaptionWarmup(videoId, requestId, url, status) {
+    if (
+      !videoId ||
+      !requestId ||
+      hasPoToken(url) ||
+      !isCaptionWarmupEligible(status)
+    ) {
+      return false;
+    }
+
+    const key = captionWarmupKey(videoId, requestId);
+    if (captionWarmupRequestedKey === key) return false;
+    captionWarmupRequestedKey = key;
+    window.postMessage(
+      {
+        source: "SUBSYNC_CAPTION_WARMUP_REQUEST",
+        videoId,
+        requestId
+      },
+      "*"
+    );
+    return true;
+  }
+
+  function stopCaptionWarmup(videoId, requestId) {
+    const key = captionWarmupKey(videoId, requestId);
+    if (!captionWarmupRequestedKey || captionWarmupRequestedKey !== key) return false;
+    if (captionWarmupStopKey === key) return false;
+    captionWarmupStopKey = key;
+    window.postMessage(
+      {
+        source: "SUBSYNC_CAPTION_WARMUP_STOP",
+        videoId,
+        requestId
+      },
+      "*"
+    );
+    return true;
+  }
+
+  function getPageUrl() {
+    try {
+      return typeof location !== "undefined" ? String(location.href || "") : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function cancelNavigationLoad() {
+    navigationLoadToken += 1;
+    if (navigationLoadTimer !== null) {
+      clearTimeout(navigationLoadTimer);
+      navigationLoadTimer = null;
+    }
+  }
+
+  function scheduleNavigationLoad() {
+    cancelNavigationLoad();
+    const token = navigationLoadToken;
+    let attempt = 0;
+
+    const checkNavigation = () => {
+      navigationLoadTimer = null;
+      if (token !== navigationLoadToken) return;
+
+      const nextVideoId = SubSync.getVideoId();
+      const nextPageUrl = getPageUrl();
+      const videoChanged = Boolean(nextVideoId && nextVideoId !== currentVideoId);
+      const pageChanged = Boolean(nextPageUrl && nextPageUrl !== currentPageUrl);
+      if (videoChanged || pageChanged) {
+        load();
+        return;
+      }
+
+      if (attempt >= navigationRetryDelays.length) return;
+      navigationLoadTimer = setTimeout(checkNavigation, navigationRetryDelays[attempt]);
+      attempt += 1;
+    };
+
+    navigationLoadTimer = setTimeout(checkNavigation, navigationRetryDelays[attempt]);
+    attempt += 1;
+  }
+
+  function scheduleCaptionRetry(buildKey, generation, videoId, url) {
+    if (
+      generation !== loadGeneration ||
+      videoId !== currentVideoId ||
+      url !== workingUrl ||
+      lastBuildKey === buildKey ||
+      typeof setTimeout !== "function"
+    ) {
+      return;
+    }
+
+    if (!captionRetryState || captionRetryState.key !== buildKey) {
+      clearCaptionRetry();
+      captionRetryState = { key: buildKey, attempt: 0 };
+    }
+    if (captionRetryTimer !== null) return;
+
+    const delay = captionRetryDelays[captionRetryState.attempt];
+    if (delay === undefined) return;
+    captionRetryState.attempt += 1;
+    captionRetryTimer = setTimeout(() => {
+      captionRetryTimer = null;
+      if (
+        !captionRetryState ||
+        captionRetryState.key !== buildKey ||
+        generation !== loadGeneration ||
+        videoId !== currentVideoId ||
+        url !== workingUrl ||
+        lastBuildKey === buildKey
+      ) {
+        return;
+      }
+      showCaptionStatus({ state: "loading" });
+      tryBuildSubtitles();
+    }, delay);
   }
 
   function fetchCaptionInPage(url, videoId, requestId) {
@@ -160,11 +323,18 @@
       ? tracks.map((track) => ({ ...(track || {}) }))
       : [];
     const buildKey = makeBuildKey(videoId, url, trackSnapshot);
+    if (captionRetryState && captionRetryState.key !== buildKey) {
+      clearCaptionRetry();
+    } else {
+      cancelCaptionRetryTimer();
+    }
     if (lastBuildKey === buildKey) return;
     if (buildInFlight && buildInFlight.key === buildKey) {
+      pendingBuildRetry = true;
       return buildInFlight.promise;
     }
 
+    pendingBuildRetry = false;
     const generation = loadGeneration;
     const requestId = activeRequestId;
     const buildId = ++nextBuildId;
@@ -202,11 +372,19 @@
         }
 
         subtitles = Array.isArray(result) ? result : [];
-        // 429·빈 본문·파싱 실패가 []로 내려온 경우 성공 캐시로 고정하지 않는다.
-        // 이후 YouTube의 실제 timedtext 재요청이나 사용자의 refresh가 같은 URL로 재시도할 수 있다.
-        if (subtitles.length) {
+        // 한국어 요청이 실패해 영어만 있는 결과는 완료로 캐시하지 않는다.
+        // 이후 YouTube가 새 PO 문맥을 관찰하면 같은 URL도 다시 시도해야 한다.
+        const isCompleteBuild =
+          !lastReportedStatus || lastReportedStatus.state === "ready";
+        if (subtitles.length && isCompleteBuild) {
           lastBuildKey = buildKey;
-        } else if (!lastReportedStatus) {
+          clearCaptionRetry();
+        } else {
+          lastBuildKey = null;
+          requestCaptionWarmup(videoId, requestId, url, lastReportedStatus);
+          scheduleCaptionRetry(buildKey, generation, videoId, url);
+        }
+        if (!subtitles.length && !lastReportedStatus) {
           showCaptionStatus({ state: "error", phase: "learn", code: "empty" });
         }
         if (SubSync.scriptPanel && SubSync.scriptPanel.setSubtitles) {
@@ -220,11 +398,24 @@
           videoId === currentVideoId
         ) {
           showCaptionStatus({ state: "error", phase: "learn", code: "network" });
+          requestCaptionWarmup(videoId, requestId, url, { code: "network" });
+          scheduleCaptionRetry(buildKey, generation, videoId, url);
         }
       } finally {
         settleRefresh(requestId);
         if (buildInFlight && buildInFlight.id === buildId) {
           buildInFlight = null;
+          const shouldRetry =
+            pendingBuildRetry &&
+            lastBuildKey === null &&
+            generation === loadGeneration &&
+            buildId === nextBuildId &&
+            videoId === currentVideoId &&
+            url === workingUrl;
+          pendingBuildRetry = false;
+          if (shouldRetry) {
+            Promise.resolve().then(() => tryBuildSubtitles());
+          }
         }
       }
     })();
@@ -232,6 +423,29 @@
     buildInFlight = { id: buildId, key: buildKey, promise };
     return promise;
   }
+
+  SubSync.getRecentSubtitles = function getRecentSubtitles(limit = 8) {
+    if (!subtitles.length) return [];
+    const video = SubSync.player && SubSync.player.getVideo
+      ? SubSync.player.getVideo()
+      : null;
+    const currentTime = video && Number.isFinite(Number(video.currentTime))
+      ? Number(video.currentTime)
+      : subtitles[0].timestamp;
+    let nearestIndex = 0;
+    let nearestDistance = Infinity;
+    subtitles.forEach((subtitle, index) => {
+      const distance = Math.abs(Number(subtitle.timestamp) - currentTime);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    });
+    const safeLimit = Math.max(1, Math.min(100, Number(limit) || 8));
+    const before = Math.floor((safeLimit - 1) / 2);
+    const start = Math.max(0, Math.min(nearestIndex - before, subtitles.length - safeLimit));
+    return subtitles.slice(start, start + safeLimit);
+  };
 
   function startSync() {
     if (syncTimer) clearInterval(syncTimer);
@@ -342,10 +556,16 @@
   async function load(options = {}) {
     const forceRefresh = Boolean(options.forceRefresh);
     const videoId = SubSync.getVideoId();
+    const pageUrl = getPageUrl();
     if (!videoId) return;
-    if (videoId === currentVideoId && !forceRefresh) return;
+    if (videoId === currentVideoId && !forceRefresh && pageUrl === currentPageUrl) return;
 
+    const previousVideoId = currentVideoId;
+    const previousRequestId = activeRequestId;
+    stopCaptionWarmup(previousVideoId, previousRequestId);
+    cancelNavigationLoad();
     currentVideoId = videoId;
+    currentPageUrl = pageUrl;
     const generation = ++loadGeneration;
     const requestId = ++nextRequestId;
     if (refreshCompletion && refreshCompletion.requestId !== requestId) {
@@ -354,8 +574,12 @@
     activeRequestId = requestId;
     acceptingCaptionMessages = false;
     cancelPendingCaptionFetches();
+    clearCaptionRetry();
+    captionWarmupRequestedKey = null;
+    captionWarmupStopKey = null;
     nextBuildId += 1;
     buildInFlight = null;
+    pendingBuildRetry = false;
     lastBuildKey = null;
     workingUrl = null;
     subtitles = [];
@@ -439,14 +663,50 @@
       if (workingUrl) tryBuildSubtitles();
     } else if (e.data.type === "TIMEDTEXT_URL") {
       if (typeof e.data.url !== "string" || !e.data.url) return;
+      if (hasPoToken(e.data.url)) {
+        stopCaptionWarmup(currentVideoId, activeRequestId);
+      }
       workingUrl = e.data.url;
       tryBuildSubtitles();
     }
   });
 
-  document.addEventListener("yt-navigate-finish", () => setTimeout(load, 500));
+  if (
+    typeof chrome !== "undefined" &&
+    chrome.runtime &&
+    chrome.runtime.onMessage &&
+    typeof chrome.runtime.onMessage.addListener === "function"
+  ) {
+    chrome.runtime.onMessage.addListener((message) => {
+      if (
+        !message ||
+        message.type !== "CAPTION_CONTEXT_UPDATED" ||
+        !acceptingCaptionMessages ||
+        message.videoId !== currentVideoId
+      ) {
+        return;
+      }
+      stopCaptionWarmup(message.videoId, activeRequestId);
+      tryBuildSubtitles();
+    });
+  }
+
+  function handleNavigationStart() {
+    cancelNavigationLoad();
+  }
+
+  document.addEventListener("yt-navigate-start", handleNavigationStart);
+  document.addEventListener("yt-page-data-updated", scheduleNavigationLoad);
+  document.addEventListener("yt-navigate-finish", scheduleNavigationLoad);
+  window.addEventListener("popstate", scheduleNavigationLoad);
   setInterval(() => {
-    if (SubSync.getVideoId() !== currentVideoId) load();
+    const nextVideoId = SubSync.getVideoId();
+    const nextPageUrl = getPageUrl();
+    if (nextVideoId !== currentVideoId) {
+      load();
+    } else if (nextPageUrl && nextPageUrl !== currentPageUrl) {
+      scheduleNavigationLoad();
+    }
   }, 1000);
 
   load();

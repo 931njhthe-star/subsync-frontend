@@ -2,11 +2,31 @@
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
-  let hasTriggeredProactive = false;
+  let proactiveCueKey = null;
+  let proactiveInFlight = false;
+  let lifecycleGeneration = 0;
+
+  function getRecentSubtitles() {
+    return SubSync.getRecentSubtitles ? SubSync.getRecentSubtitles(8) : [];
+  }
+
+  function currentPlaybackState() {
+    const video = SubSync.player && SubSync.player.getVideo
+      ? SubSync.player.getVideo()
+      : null;
+    return video && (video.paused || video.ended) ? "paused" : "playing";
+  }
 
   SubSync.tutorChat = {
     init(containerEl) {
       if (!containerEl) return;
+
+      lifecycleGeneration += 1;
+      proactiveCueKey = null;
+      proactiveInFlight = false;
+      if (SubSync.tutorService && SubSync.tutorService.resetConversation) {
+        SubSync.tutorService.resetConversation();
+      }
 
       containerEl.innerHTML = `
         <div class="subsync-tutor-box">
@@ -19,7 +39,6 @@
         </div>
       `;
 
-      // 환영 인사(영어) 추가 및 영단어 마우스 인터랙션 자동 적용
       this.addMessage(
         "tutor",
         "Hello! Feel free to ask any questions about expressions or context in this video."
@@ -27,18 +46,27 @@
 
       const input = document.getElementById("subsync-tutor-input");
       const sendBtn = document.getElementById("subsync-tutor-send-btn");
+      if (!input || !sendBtn) return;
 
       const handleSend = async () => {
         const text = input.value.trim();
-        if (!text) return;
+        if (!text || sendBtn.disabled) return;
         input.value = "";
+        sendBtn.disabled = true;
         this.addMessage("user", text);
 
         try {
-          const res = await SubSync.tutorService.ask(text);
-          this.addMessage("tutor", res.reply, res.message_id);
+          const res = await SubSync.tutorService.ask(text, getRecentSubtitles());
+          this.addMessage("tutor", res.reply, res.message_id, res.conversation_id);
         } catch (err) {
-          this.addMessage("tutor", "답변을 불러오지 못했습니다. 네트워크를 확인해 주세요.");
+          this.addMessage(
+            "tutor",
+            err && err.message
+              ? `Tutor 연결 실패: ${err.message}`
+              : "Tutor 답변을 불러오지 못했습니다. 네트워크를 확인해 주세요."
+          );
+        } finally {
+          sendBtn.disabled = false;
         }
       };
 
@@ -48,10 +76,9 @@
       });
     },
 
-    triggerProactiveIfNeed(currentSubtitleEn) {
-      // Tutor가 꺼져있거나 선제 질문이 꺼져있으면 실행하지 않음 (요구사항 6, 11)
+    async triggerProactiveIfNeed(currentSubtitleEn) {
       if (
-        hasTriggeredProactive ||
+        !currentSubtitleEn ||
         !SubSync.settings.get("subsyncEnabled") ||
         !SubSync.settings.get("tutorEnabled") ||
         !SubSync.settings.get("proactiveTutor")
@@ -59,18 +86,39 @@
         return;
       }
 
-      if (currentSubtitleEn && currentSubtitleEn.toLowerCase().includes("honest")) {
-        hasTriggeredProactive = true;
-        setTimeout(() => {
-          this.addMessage(
-            "tutor",
-            "방금 'be honest with yourself'라는 표현이 나왔어요. 의미를 알고 있나요?"
-          );
-        }, 1000);
+      const recentSubtitles = getRecentSubtitles();
+      const activeContext = recentSubtitles.find(
+        (subtitle) => subtitle.learn === currentSubtitleEn
+      );
+      const cueKey = `${SubSync.getVideoId ? SubSync.getVideoId() : ""}:${
+        activeContext ? activeContext.timestamp : currentSubtitleEn
+      }`;
+      if (proactiveInFlight || proactiveCueKey === cueKey) return;
+      proactiveCueKey = cueKey;
+      proactiveInFlight = true;
+      const generation = lifecycleGeneration;
+
+      try {
+        const response = await SubSync.tutorService.checkProactive(recentSubtitles, {
+          playbackState: currentPlaybackState()
+        });
+        if (
+          generation !== lifecycleGeneration ||
+          !response ||
+          !response.should_show ||
+          !response.question
+        ) {
+          return;
+        }
+        this.addMessage("tutor", response.question);
+      } catch (err) {
+        console.warn("[SubSync] Tutor 선제 질문 요청 실패:", err && err.message ? err.message : "unknown");
+      } finally {
+        if (generation === lifecycleGeneration) proactiveInFlight = false;
       }
     },
 
-    addMessage(sender, text, messageId) {
+    addMessage(sender, text, messageId, conversationId) {
       const msgsEl = document.getElementById("subsync-tutor-msgs");
       if (!msgsEl) return;
 
@@ -81,7 +129,6 @@
       textEl.className = "subsync-msg-text";
 
       if (sender === "tutor") {
-        // AI 응답 내 영어 텍스트에도 동일한 Mouse Interaction 적용 (요구사항 4, 6)
         SubSync.interactiveText.attach(textEl, text);
       } else {
         textEl.textContent = text;
@@ -99,8 +146,19 @@
         fbEl.querySelectorAll(".subsync-fb-btn").forEach((btn) => {
           btn.addEventListener("click", async () => {
             const rating = btn.dataset.rating;
-            await SubSync.tutorService.sendFeedback(messageId, rating);
-            fbEl.innerHTML = `<span class="subsync-fb-done">피드백이 반영되었습니다.</span>`;
+            btn.disabled = true;
+            try {
+              await SubSync.tutorService.sendFeedback(
+                messageId,
+                rating,
+                undefined,
+                conversationId
+              );
+              fbEl.innerHTML = `<span class="subsync-fb-done">피드백이 반영되었습니다.</span>`;
+            } catch (err) {
+              btn.disabled = false;
+              console.warn("[SubSync] Tutor feedback failed:", err && err.message ? err.message : "unknown");
+            }
           });
         });
         msgEl.appendChild(fbEl);

@@ -4,7 +4,7 @@
 
   let rootEl = null;
   let quickBarEl = null;
-  let currentScreen = "video"; // "video" | "script" | "tutor" | "words" | "history" | "settings"
+  let currentScreen = "video"; // "video" | "script" | "tutor" | "storage" | "settings"
   let panelCloseTimer = null;
   let positionResetTimer = null;
   let navIndicatorInitialized = false;
@@ -13,7 +13,7 @@
   const VIEWPORT_MARGIN = 12;
   const PANEL_TRANSITION_MS = 360;
   const POSITION_RESET_MS = 420;
-  const SCREEN_ORDER = Object.freeze(["video", "tutor", "words", "history", "settings"]);
+  const SCREEN_ORDER = Object.freeze(["video", "tutor", "storage", "settings"]);
 
   function getScreenDirection(nextScreen) {
     const currentIndex = SCREEN_ORDER.indexOf(currentScreen);
@@ -207,8 +207,7 @@
           <span class="subsync-nav-active-indicator" aria-hidden="true"></span>
           <button class="subsync-nav-btn active" data-screen="video">${SubSync.icon("video-learning", "subsync-nav-icon")}<span>영상학습</span></button>
           <button class="subsync-nav-btn" data-screen="tutor">${SubSync.icon("ai-tutor", "subsync-nav-icon")}<span>AI 튜터</span></button>
-          <button class="subsync-nav-btn" data-screen="words">${SubSync.icon("vocabulary", "subsync-nav-icon")}<span>단어장</span></button>
-          <button class="subsync-nav-btn" data-screen="history">${SubSync.icon("learning-history", "subsync-nav-icon")}<span>학습기록</span></button>
+          <button class="subsync-nav-btn" data-screen="storage">${SubSync.icon("vocabulary", "subsync-nav-icon")}<span>저장소</span></button>
           <button class="subsync-nav-btn" data-screen="settings">${SubSync.icon("settings", "subsync-nav-icon")}<span>설정</span></button>
         </div>
 
@@ -220,11 +219,8 @@
           <div id="subsync-screen-tutor" class="subsync-screen-panel" style="display: none;">
             <div id="subsync-tutor-area"></div>
           </div>
-          <div id="subsync-screen-words" class="subsync-screen-panel" style="display: none;">
-            <div id="subsync-words-area"></div>
-          </div>
-          <div id="subsync-screen-history" class="subsync-screen-panel" style="display: none;">
-            <div id="subsync-history-area"></div>
+          <div id="subsync-screen-storage" class="subsync-screen-panel" style="display: none;">
+            <div id="subsync-storage-area"></div>
           </div>
           <div id="subsync-screen-settings" class="subsync-screen-panel" style="display: none;">
             <div id="subsync-settings-area"></div>
@@ -356,10 +352,8 @@
       updateNavIndicator();
 
       // 화면별 동적 렌더링 호출
-      if (screenName === "words") {
-        SubSync.savedWordsView.render(document.getElementById("subsync-words-area"));
-      } else if (screenName === "history") {
-        SubSync.historyView.render(document.getElementById("subsync-history-area"));
+      if (screenName === "storage") {
+        SubSync.historyView.render(document.getElementById("subsync-storage-area"));
       } else if (screenName === "settings") {
         SubSync.settingsView.render(document.getElementById("subsync-settings-area"));
       }

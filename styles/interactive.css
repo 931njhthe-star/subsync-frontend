@@ -39,6 +39,7 @@
 .subsync-tt-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
 }
 
@@ -56,6 +57,33 @@
 .subsync-tt-loading {
   font-size: 11px;
   color: #a4b0be;
+}
+
+.subsync-tt-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.subsync-tt-save-btn:hover {
+  background: var(--subsync-surface-hover, rgba(255, 255, 255, 0.12));
+}
+
+.subsync-tt-save-btn:disabled {
+  cursor: default;
+}
+
+.subsync-tt-save-btn.subsync-tt-save-saved {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(255, 200, 60, 0.9));
 }
 
 .subsync-tt-hint {
@@ -113,6 +141,8 @@
 }
 
 .subsync-popup-save-btn {
+  display: inline-flex;
+  align-items: center;
   background: var(--subsync-accent, #3f7ff5);
   border: none;
   color: #fff;
@@ -124,9 +154,14 @@
   transition: opacity 0.15s;
 }
 .subsync-popup-save-btn:disabled {
-  background: rgba(46, 213, 115, 0.2);
-  color: #2ed573;
-  cursor: default;
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.subsync-popup-save-btn.subsync-popup-save-saved {
+  background: rgba(255, 213, 74, 0.16);
+  color: #ffd54a;
+  box-shadow: 0 0 10px rgba(255, 213, 74, 0.28);
 }
 
 .subsync-popup-close-btn {

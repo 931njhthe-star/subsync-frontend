@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "SubSync - Interactive Dual Subtitle & Video Tutor",
+  "name": "test",
   "version": "1.0.0",
   "description": "YouTube 영·한 이중자막, 마우스 단어 즉시 학습 및 Gemini Video Tutor 확장 프로그램",
   "action": {
@@ -24,6 +24,7 @@
         "src/core/player.js",
         "src/core/icon_assets.js",
         "src/core/glass_filter.js",
+        "src/services/auth_config.js",
         "src/services/api_client.js",
         "src/services/auth_service.js",
         "src/services/settings_service.js",
@@ -64,11 +65,13 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "activeTab", "webRequest"],
+  "permissions": ["storage", "activeTab", "webRequest", "identity"],
   "host_permissions": [
     "https://www.youtube.com/*",
     "http://localhost:8000/*",
-    "https://api.subsync.xyz/*"
+    "http://127.0.0.1:8000/*",
+    "https://api.subsync.xyz/*",
+    "https://*.supabase.co/*"
   ],
   "web_accessible_resources": [
     {

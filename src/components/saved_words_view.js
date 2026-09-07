@@ -18,11 +18,7 @@
     return [];
   }
 
-  function formatTimestamp(timestamp) {
-    if (!Number.isFinite(Number(timestamp))) return "";
-    const total = Math.max(0, Math.floor(Number(timestamp)));
-    return `⏱ ${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
-  }
+  let activeContainerEl = null;
 
   SubSync.savedWordsView = {
     async getItems() {
@@ -42,6 +38,7 @@
 
     async render(containerEl) {
       if (!containerEl) return;
+      activeContainerEl = containerEl;
 
       const isAuthed = await SubSync.authService.isAuthenticated();
       if (!isAuthed) {
@@ -70,7 +67,6 @@
           <div class="subsync-saved-main">
             <div class="subsync-saved-word-row">
               <span class="subsync-saved-word">${escapeHtml(item.word)}</span>
-              ${formatTimestamp(item.timestamp) ? `<span class="subsync-saved-time">${formatTimestamp(item.timestamp)}</span>` : ""}
             </div>
             <div class="subsync-saved-meaning">${escapeHtml(item.meaning)}</div>
             ${item.context_sentence ? `<div class="subsync-saved-context">“${escapeHtml(item.context_sentence)}”</div>` : ""}
@@ -86,6 +82,25 @@
         </div>
         <div class="subsync-saved-list">${listHtml}</div>
       `;
+
+      const wordElements = containerEl.querySelectorAll(".subsync-saved-word");
+      if (SubSync.interactiveText && typeof SubSync.interactiveText.attach === "function") {
+        wordElements.forEach((wordElement, index) => {
+          const item = items[index];
+          if (!item || !String(item.word || "").trim()) return;
+          SubSync.interactiveText.attach(
+            wordElement,
+            String(item.word),
+            String(item.context_sentence || item.word)
+          );
+          if (wordElement.querySelectorAll) {
+            wordElement.querySelectorAll(".subsync-word").forEach((token) => {
+              token.dataset.savedWordId = String(item.id || "");
+              token.dataset.savedWordVideoId = String(item.video_id || "");
+            });
+          }
+        });
+      }
 
       containerEl.querySelectorAll(".subsync-saved-del-btn").forEach((button) => {
         button.addEventListener("click", async (event) => {
@@ -104,6 +119,11 @@
           }
         });
       });
+    },
+
+    async refresh() {
+      if (!activeContainerEl) return;
+      await this.render(activeContainerEl);
     }
   };
 })();

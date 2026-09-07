@@ -11,7 +11,9 @@
     script: "script.svg",
     search: "search.svg",
     collapse: "collapse.svg",
-    refresh: "refresh.svg"
+    refresh: "refresh.svg",
+    star: "star.svg",
+    "star-filled": "star-filled.svg"
   });
 
   function iconUrl(name) {

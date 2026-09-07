@@ -68,3 +68,11 @@
 - 메인 패널 헤더에 refresh SVG와 SubSync 재초기화 버튼을 추가해 Chrome 새로고침 없이 현재 영상 자막·Script를 재빌드
 - 자막 요청을 영상·요청 ID로 격리하고 갱신된 언어별 signed track URL 재사용, 빈 build 재시도, refresh 완료 대기 및 HTTP·빈 응답 오류 표시로 YouTube SPA 자막 lifecycle을 안정화
 - native CC를 확장앱이 조작하지 않고 webRequest로 실제 YouTube PO/client 문맥을 탭·영상별 임시 relay해 CC 비활성 상태에서도 영어·한국어 timedtext를 요청하도록 보강
+- 로컬 Video Tutor API(127.0.0.1:8000)의 ask·proactive·feedback 계약을 프론트 서비스·채팅 UI에 연결하고 자막 문맥·대화 ID·피드백 rating을 전달
+- 오리지널 `star.svg`·`star-filled.svg`를 등록하고 Hover·상세 단어 팝업의 저장 버튼을 저장/취소 토글로 연결했으며 저장 시 노란색 filled star와 glow를 표시하고 문장 저장 버튼·저장 domain은 제외
+- 저장소 단어 기록 카드에 공통 Hover 뜻 툴팁과 문맥 전달을 연결하고 회귀 테스트를 추가
+- YouTube SPA 내비게이션 후 URL 반영 지연을 재시도해 새 영상 자막을 새로고침 없이 자동 로드하도록 개선
+- YouTube SPA의 navigate-start/page-data-updated 이벤트와 최신 player response를 연결하고 현재 video ID 일치 검증으로 이전 영상 자막 메타데이터를 차단
+- 자막 source 실패 시 레거시의 captions 모듈·tracklist·reload acquisition을 현재 영상별 warm-up에 이식하고 signed timedtext 확보 후 native caption 상태를 복구하도록 연결
+- 저장소에서 문장 탭과 단어 타임스탬프를 제거하고, 저장소 단어 별 취소 시 record ID 기반 삭제·목록 즉시 갱신·Hover 팝업 종료를 보장
+- Google OAuth 연결 준비: MV3 service worker PKCE OAuth flow, Supabase 공개 설정 파일, 세션 갱신·로그아웃, Google OAuth 설정 가이드를 추가

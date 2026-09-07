@@ -24,10 +24,11 @@ const icons = [
   "script",
   "search",
   "collapse",
-  "refresh"
+  "refresh",
+  "star"
 ];
 
-test("the original SubSync icon set contains eight local SVG assets", () => {
+test("the original SubSync icon set contains ten local SVG assets", () => {
   for (const name of icons) {
     const svg = fs.readFileSync(path.join(iconDir, `${name}.svg`), "utf8");
     assert.match(svg, /^<svg\b/);
@@ -51,11 +52,11 @@ test("icon assets use an extension URL helper and are exposed to YouTube", () =>
   assert.ok(manifest.web_accessible_resources[0].resources.includes("assets/fonts/*.woff"));
 });
 
-test("the six feature controls use the original SVG icon set", () => {
+test("the feature controls use the original SVG icon set", () => {
   assert.match(layout, /SubSync\.icon\("video-learning"/);
   assert.match(layout, /SubSync\.icon\("ai-tutor"/);
   assert.match(layout, /SubSync\.icon\("vocabulary"/);
-  assert.match(layout, /SubSync\.icon\("learning-history"/);
+  assert.doesNotMatch(layout, /SubSync\.icon\("learning-history"/);
   assert.match(layout, /SubSync\.icon\("settings"/);
   assert.match(layout, /SubSync\.icon\("script"/);
   assert.match(scriptPanel, /SubSync\.icon\("script"/);

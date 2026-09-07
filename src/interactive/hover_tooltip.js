@@ -8,11 +8,13 @@
   let hideTimer = null;
   let exitTimer = null;
   let renderToken = 0;
+  let saveStateToken = 0;
   let targetActive = false;
   let tooltipActive = false;
   let currentWord = "";
   let currentSentence = "";
   let currentTarget = null;
+  let currentSavedWord = null;
 
   function clearHideTimer() {
     if (hideTimer) {
@@ -28,15 +30,76 @@
     }
   }
 
+  function getCurrentVideoId() {
+    try {
+      return SubSync.getVideoId ? String(SubSync.getVideoId() || "") : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function isMatchingSavedWord(item, word, videoId) {
+    if (!item || String(item.word || "").trim().toLowerCase() !== String(word || "").trim().toLowerCase()) {
+      return false;
+    }
+    return !videoId || !item.video_id || String(item.video_id) === videoId;
+  }
+
+  function savedWordFromTarget(targetEl, word) {
+    const id = targetEl?.dataset?.savedWordId;
+    if (!id) return null;
+    return {
+      id: String(id),
+      word,
+      video_id: String(targetEl.dataset.savedWordVideoId || "")
+    };
+  }
+
+  async function findSavedWord(word) {
+    if (!SubSync.learningHistory || !SubSync.learningHistory.getSavedWords) return null;
+    const items = await SubSync.learningHistory.getSavedWords();
+    const videoId = getCurrentVideoId();
+    return (Array.isArray(items) ? items : []).find((item) => isMatchingSavedWord(item, word, videoId)) || null;
+  }
+
+  function restartSaveIconAnimation(button, isSaved) {
+    const icon = button?.querySelector && button.querySelector(".subsync-tt-save-icon");
+    if (!icon || !icon.classList) return;
+    icon.classList.remove("subsync-save-icon-on", "subsync-save-icon-off");
+    void icon.offsetWidth;
+    icon.classList.add(isSaved ? "subsync-save-icon-on" : "subsync-save-icon-off");
+  }
+
+  function setSaveButtonState(button, savedWord, options = {}) {
+    if (!button) return;
+    const isSaved = Boolean(savedWord);
+    if (isSaved) {
+      button.classList.add("subsync-tt-save-saved");
+    } else {
+      button.classList.remove("subsync-tt-save-saved");
+    }
+    button.setAttribute("aria-pressed", String(isSaved));
+    button.setAttribute("aria-label", isSaved ? "단어 저장됨. 클릭하여 저장 취소" : "단어 저장하기");
+    button.title = isSaved ? "저장 취소" : "저장소에 단어 저장";
+
+    const icon = button.querySelector && button.querySelector(".subsync-tt-save-icon");
+    if (icon && SubSync.iconUrl) {
+      icon.src = SubSync.iconUrl(isSaved ? "star-filled" : "star");
+    }
+    if (options.animate) restartSaveIconAnimation(button, isSaved);
+  }
+
   function hideNow() {
     clearHideTimer();
     clearExitTimer();
     renderToken += 1;
+    saveStateToken += 1;
     targetActive = false;
     tooltipActive = false;
     currentWord = "";
     currentSentence = "";
     currentTarget = null;
+    currentSavedWord = null;
     if (tooltipEl) {
       tooltipEl.classList.remove("subsync-tooltip-visible");
       tooltipEl.classList.add("subsync-tooltip-exiting");
@@ -97,6 +160,7 @@
 
   function renderContent(word, sentence, targetEl, meaningText, isLoading) {
     const el = ensureTooltip();
+    const isStorageWord = Boolean(targetEl?.dataset?.savedWordId);
     el.innerHTML = "";
 
     const top = document.createElement("div");
@@ -111,6 +175,65 @@
     meaningEl.className = isLoading ? "subsync-tt-loading" : "subsync-tt-mean";
     meaningEl.textContent = isLoading ? "뜻 불러오는 중..." : meaningText;
     top.appendChild(meaningEl);
+
+    const saveButton = document.createElement("button");
+    saveButton.type = "button";
+    saveButton.className = "subsync-tt-save-btn";
+    saveButton.innerHTML = SubSync.icon ? SubSync.icon("star", "subsync-tt-save-icon") : "";
+    setSaveButtonState(saveButton, currentSavedWord);
+    saveButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (saveButton.disabled) return;
+
+      const authed = SubSync.authService
+        ? await SubSync.authService.isAuthenticated()
+        : true;
+      if (!authed) {
+        if (SubSync.authModal) SubSync.authModal.show();
+        return;
+      }
+
+      const wasSaved = Boolean(currentSavedWord) || saveButton.classList.contains("subsync-tt-save-saved");
+      const mutationToken = ++saveStateToken;
+      saveButton.disabled = true;
+      saveButton.setAttribute("aria-busy", "true");
+      try {
+        if (wasSaved) {
+          if (!SubSync.dictService || !SubSync.dictService.removeWord) {
+            throw new Error("단어 저장 취소 기능을 사용할 수 없습니다.");
+          }
+          await SubSync.dictService.removeWord(currentSavedWord || {
+            word,
+            video_id: getCurrentVideoId()
+          });
+          currentSavedWord = null;
+        } else {
+          if (!SubSync.dictService || !SubSync.dictService.saveWord) {
+            throw new Error("단어 저장 기능을 사용할 수 없습니다.");
+          }
+          const saved = await SubSync.dictService.saveWord(
+            word,
+            isLoading ? "" : meaningText,
+            sentence
+          );
+          currentSavedWord = saved && typeof saved === "object"
+            ? saved
+            : { word, video_id: getCurrentVideoId() };
+        }
+        if (mutationToken === saveStateToken) {
+          setSaveButtonState(saveButton, currentSavedWord, { animate: true });
+          if (wasSaved && isStorageWord) hideNow();
+        }
+      } catch (_) {
+        // 실패한 요청은 현재 상태를 바꾸지 않고 다시 클릭할 수 있게 한다.
+        setSaveButtonState(saveButton, currentSavedWord);
+      } finally {
+        saveButton.disabled = false;
+        saveButton.removeAttribute("aria-busy");
+      }
+    });
+    top.appendChild(saveButton);
 
     const detailButton = document.createElement("button");
     detailButton.type = "button";
@@ -155,7 +278,10 @@
       currentWord = word;
       currentSentence = fullSentence || word;
       currentTarget = targetEl;
+      currentSavedWord = null;
       const token = ++renderToken;
+      const savedLookupToken = ++saveStateToken;
+      const storageSavedWord = savedWordFromTarget(targetEl, word);
       const el = ensureTooltip();
       const wasHidden = el.style.display === "none" || !el.classList.contains("subsync-tooltip-visible");
       clearExitTimer();
@@ -167,6 +293,19 @@
         el.classList.add("subsync-tooltip-visible");
       }
       renderContent(word, currentSentence, targetEl, "", true);
+
+      if (storageSavedWord) {
+        currentSavedWord = storageSavedWord;
+        setSaveButtonState(el.querySelector(".subsync-tt-save-btn"), storageSavedWord);
+      } else {
+        Promise.resolve(findSavedWord(word))
+          .then((savedWord) => {
+            if (savedLookupToken !== saveStateToken || token !== renderToken || currentWord !== word) return;
+            currentSavedWord = savedWord;
+            setSaveButtonState(el.querySelector(".subsync-tt-save-btn"), savedWord);
+          })
+          .catch(() => {});
+      }
 
       Promise.resolve()
         .then(() => {

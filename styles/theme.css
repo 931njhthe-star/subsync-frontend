@@ -212,15 +212,6 @@ body[data-subsync-theme] .subsync-btn-small:hover {
   color: #ffffff;
 }
 
-body[data-subsync-theme] .subsync-auth-button {
-  background: #ffffff;
-  color: #1f1f1f;
-}
-
-body[data-subsync-theme] .subsync-auth-button:hover:not(:disabled) {
-  background: #f1f3f4;
-  color: #1f1f1f;
-}
 
 body[data-subsync-theme] .subsync-btn-close {
   color: var(--subsync-text-muted);
@@ -650,6 +641,16 @@ body[data-subsync-theme] .subsync-auth-inputs input:focus {
 body[data-subsync-theme] .subsync-btn-primary {
   background: var(--subsync-accent);
   color: #ffffff;
+}
+
+body[data-subsync-theme] .subsync-auth-modal .subsync-auth-google-btn {
+  background: #3a3f48;
+  color: #ffffff;
+}
+
+body[data-subsync-theme] .subsync-auth-modal .subsync-auth-google-btn:hover:not(:disabled) {
+  background: #ffffff;
+  color: #1f2937;
 }
 
 body[data-subsync-theme] .subsync-btn-secondary {

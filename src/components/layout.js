@@ -198,7 +198,7 @@
           </div>
           <div class="subsync-header-controls">
             <button id="subsync-refresh-btn" class="subsync-btn-small subsync-header-refresh-btn" title="SubSync 새로고침" aria-label="SubSync 새로고침">${SubSync.icon("refresh", "subsync-refresh-icon")}</button>
-            <button id="subsync-auth-btn" class="subsync-btn-small subsync-auth-button" type="button" title="Google로 로그인" aria-label="Google로 로그인">${SubSync.icon("google", "subsync-auth-icon")}</button>
+            <button id="subsync-auth-btn" class="subsync-btn-small" type="button" title="로그인" aria-label="로그인">로그인</button>
             <button id="subsync-close-btn" class="subsync-btn-close">×</button>
           </div>
         </div>
@@ -365,15 +365,13 @@
       if (!authBtn) return;
 
       if (isAuthed) {
-        authBtn.classList.add("subsync-auth-logged-in");
         authBtn.textContent = "로그아웃";
         authBtn.title = "로그아웃";
         authBtn.setAttribute("aria-label", "로그아웃");
       } else {
-        authBtn.classList.remove("subsync-auth-logged-in");
-        authBtn.innerHTML = SubSync.icon("google", "subsync-auth-icon");
-        authBtn.title = "Google로 로그인";
-        authBtn.setAttribute("aria-label", "Google로 로그인");
+        authBtn.textContent = "로그인";
+        authBtn.title = "로그인";
+        authBtn.setAttribute("aria-label", "로그인");
       }
     },
 

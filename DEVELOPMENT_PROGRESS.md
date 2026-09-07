@@ -74,7 +74,7 @@
 - 상단 `단어장`·`학습기록` 탭을 `저장소`로 통합하고 내부 `단어`·`문장`·`시청기록` 탭으로 재구성했으며 기존 wordHistory·savedWords·videoHistory 저장 구조는 유지
 - Chrome 확장앱 표시 이름을 `SubSync - Interactive Dual Subtitle & Video Tutor`에서 `SubSync`로 변경
 - AI Tutor 질문 대기 중 3개 점이 왼쪽에서 오른쪽으로 물결을 타며 움직이는 답변 준비 indicator를 추가
-- 로그인 탭의 텍스트를 공식 멀티컬러 Google G 로컬 SVG 아이콘으로 교체하고 접근성 라벨·hover 스타일을 유지
+- 로그인 탭은 `로그인` 텍스트 버튼으로 복원하고, 로그인 팝업은 텍스트 없는 18px Google 멀티컬러 G 아이콘 버튼으로 변경했으며 기본 어두운 회색·hover 흰색 상태를 적용
 - 오리지널 `star.svg`·`star-filled.svg`를 등록하고 Hover·상세 단어 팝업의 저장 버튼을 저장/취소 토글로 연결했으며 저장 시 노란색 filled star와 glow를 표시하고 문장 저장 버튼·저장 domain은 제외
 - 저장소 단어 기록 카드에 공통 Hover 뜻 툴팁과 문맥 전달을 연결하고 회귀 테스트를 추가
 - YouTube SPA 내비게이션 후 URL 반영 지연을 재시도해 새 영상 자막을 새로고침 없이 자동 로드하도록 개선

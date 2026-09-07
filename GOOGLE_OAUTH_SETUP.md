@@ -46,7 +46,7 @@ chrome.identity.getRedirectURL("supabase");
 
 ## 4. 동작 순서
 
-1. 로그인 모달에서 `Google로 계속하기`를 클릭합니다.
+1. 로그인 모달에서 Google 아이콘 버튼을 클릭합니다.
 2. YouTube content script가 service worker에 `AUTH_GOOGLE_LOGIN`을 보냅니다.
 3. service worker가 PKCE verifier/challenge를 생성합니다.
 4. `chrome.identity.launchWebAuthFlow`가 Google/Supabase 로그인 창을 엽니다.

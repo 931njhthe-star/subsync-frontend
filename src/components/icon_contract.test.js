@@ -6,6 +6,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..", "..");
 const iconDir = path.join(root, "assets", "icons");
 const layout = fs.readFileSync(path.join(root, "src", "components", "layout.js"), "utf8");
+const authModal = fs.readFileSync(path.join(root, "src", "components", "auth_modal.js"), "utf8");
 const scriptPanel = fs.readFileSync(path.join(root, "src", "components", "script_panel.js"), "utf8");
 const tutorChat = fs.readFileSync(path.join(root, "src", "components", "tutor_chat.js"), "utf8");
 const iconAssets = fs.readFileSync(path.join(root, "src", "core", "icon_assets.js"), "utf8");
@@ -67,9 +68,13 @@ test("the feature controls use the original SVG icon set", () => {
   assert.match(tutorChat, /SubSync\.icon\("ai-tutor"/);
   assert.match(
     layout,
-    /id="subsync-auth-btn"[^>]*aria-label="Google로 로그인"[^>]*>\$\{SubSync\.icon\("google", "subsync-auth-icon"\)\}<\/button>/
+    /id="subsync-auth-btn" class="subsync-btn-small" type="button" title="로그인" aria-label="로그인">로그인<\/button>/
   );
-  assert.doesNotMatch(layout, /id="subsync-auth-btn"[^>]*>로그인<\/button>/);
+  assert.doesNotMatch(layout, /SubSync\.icon\("google"/);
+  assert.match(authModal, /id="subsync-auth-google-btn"/);
+  assert.match(authModal, /googleButtonMarkup\(\)/);
+  assert.match(authModal, /aria-label="Google로 계속하기"/);
+  assert.doesNotMatch(authModal, /subsync-auth-google-label/);
 
   for (const legacyIcon of ["📺", "🤖", "⭐", "📊", "⚙️", "📜"]) {
     assert.doesNotMatch(layout, new RegExp(legacyIcon));
@@ -86,7 +91,8 @@ test("icon CSS keeps SVG sizing and state styling scoped to SubSync controls", (
   assert.match(iconCss, /height:\s*16px/);
   assert.match(iconCss, /\.subsync-nav-btn[^}]*\.subsync-ui-icon/);
   assert.match(iconCss, /\.subsync-nav-btn\.active[^}]*\.subsync-ui-icon/);
-  assert.match(iconCss, /\.subsync-auth-icon[\s\S]*width:\s*18px[\s\S]*height:\s*18px/);
+  assert.doesNotMatch(iconCss, /\.subsync-auth-icon/);
+  assert.match(iconCss, /\.subsync-auth-google-icon\s*\{[\s\S]*display:\s*block[\s\S]*width:\s*18px[\s\S]*height:\s*18px[\s\S]*flex:\s*0\s+0\s+18px[\s\S]*opacity:\s*1/);
   assert.match(iconCss, /\.subsync-script-panel-container\s+\.subsync-script-collapse-btn[\s\S]*left:\s*50%/);
   assert.match(iconCss, /subsync-script-collapse-collapsed/);
 });

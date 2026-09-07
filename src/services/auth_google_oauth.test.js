@@ -10,6 +10,9 @@ const authConfigPath = path.join(srcRoot, "services", "auth_config.js");
 const oauthHelperPath = path.join(srcRoot, "services", "auth_oauth.js");
 const authServicePath = path.join(srcRoot, "services", "auth_service.js");
 const authModalPath = path.join(srcRoot, "components", "auth_modal.js");
+const modalCssPath = path.join(projectRoot, "styles", "modal.css");
+const iconCssPath = path.join(projectRoot, "styles", "icons.css");
+const themeCssPath = path.join(projectRoot, "styles", "theme.css");
 const backgroundPath = path.join(srcRoot, "background.js");
 const manifestPath = path.join(projectRoot, "manifest.json");
 
@@ -21,6 +24,9 @@ const authConfig = readIfPresent(authConfigPath);
 const oauthHelper = readIfPresent(oauthHelperPath);
 const authService = readIfPresent(authServicePath);
 const authModal = readIfPresent(authModalPath);
+const modalCss = readIfPresent(modalCssPath);
+const iconCss = readIfPresent(iconCssPath);
+const themeCss = readIfPresent(themeCssPath);
 const background = readIfPresent(backgroundPath);
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 
@@ -103,9 +109,23 @@ test("content auth service delegates Google OAuth to the MV3 service worker", ()
 test("auth modal exposes a Google login action instead of a local password form", () => {
   assert.match(authModal, /subsync-auth-google-btn/);
   assert.match(authModal, /loginWithGoogle/);
+  assert.match(authModal, /SubSync\.icon\("google", "subsync-auth-google-icon"\)/);
+  assert.match(authModal, /function googleButtonMarkup\(\)/);
+  assert.match(authModal, /renderGoogleButton\(button, "Google 로그인 연결 중\.\.\."\, true\)/);
+  assert.match(authModal, /renderGoogleButton\(button, "Google로 계속하기"\, false\)/);
+  assert.doesNotMatch(authModal, /button\.textContent = "Google 로그인 연결 중\.\.\."/);
+  assert.doesNotMatch(authModal, /subsync-auth-google-label|Google로 계속하기<\/span>/);
   assert.doesNotMatch(authModal, /subsync-auth-email/);
   assert.doesNotMatch(authModal, /subsync-auth-password/);
   assert.doesNotMatch(authModal, /회원가입하기/);
+});
+
+test("Google login popup button centers the icon and keeps the dark/white hover states", () => {
+  assert.match(modalCss, /\.subsync-auth-google-btn\s*\{[\s\S]*display:\s*inline-flex[\s\S]*align-items:\s*center[\s\S]*justify-content:\s*center[\s\S]*background:\s*#3a3f48/);
+  assert.match(modalCss, /\.subsync-auth-google-btn:hover:not\(:disabled\)\s*\{[\s\S]*background:\s*#ffffff[\s\S]*color:\s*#1f2937/);
+  assert.match(iconCss, /\.subsync-auth-google-icon\s*\{[\s\S]*width:\s*18px[\s\S]*height:\s*18px[\s\S]*flex:\s*0\s+0\s+18px/);
+  assert.match(themeCss, /body\[data-subsync-theme\]\s+\.subsync-auth-modal\s+\.subsync-auth-google-btn\s*\{[\s\S]*background:\s*#3a3f48[\s\S]*color:\s*#ffffff/);
+  assert.match(themeCss, /body\[data-subsync-theme\]\s+\.subsync-auth-modal\s+\.subsync-auth-google-btn:hover:not\(:disabled\)\s*\{[\s\S]*background:\s*#ffffff[\s\S]*color:\s*#1f2937/);
 });
 
 test("background exchanges the OAuth code, stores the session, and refreshes it", () => {

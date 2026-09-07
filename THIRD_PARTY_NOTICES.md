@@ -20,7 +20,7 @@ Gmarket Sans is used as an optional font for the SubSync extension UI. The defau
 - Official source: https://developers.google.com/identity/branding-guidelines
 - Asset source: https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg
 - Included file: `assets/icons/google.svg`
-- Usage: The standard multicolor Google G mark is displayed inside the compact Google login control.
+- Usage: The standard multicolor Google G mark is displayed as the icon-only Google login button inside the sign-in modal.
 - Modification status: The official path geometry and brand colors are preserved; the local SVG wrapper and accessible button container are used for the extension UI.
 
 The Google G mark is subject to Google's branding guidelines. The SubSync extension does not imply sponsorship or endorsement by Google.

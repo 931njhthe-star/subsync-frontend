@@ -38,6 +38,22 @@
     element.classList.add("subsync-modal-visible");
   }
 
+  function googleButtonMarkup() {
+    return SubSync.icon("google", "subsync-auth-google-icon");
+  }
+
+  function renderGoogleButton(button, label, isBusy = false) {
+    if (!button) return;
+    button.innerHTML = googleButtonMarkup();
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    if (isBusy) {
+      button.setAttribute("aria-busy", "true");
+    } else {
+      button.removeAttribute("aria-busy");
+    }
+  }
+
   function renderModalContent() {
     if (!modalEl) return;
 
@@ -55,8 +71,10 @@
             id="subsync-auth-google-btn"
             class="subsync-btn-primary subsync-auth-google-btn"
             type="button"
+            aria-label="Google로 계속하기"
+            title="Google로 계속하기"
           >
-            Google로 계속하기
+            ${googleButtonMarkup()}
           </button>
           <button id="subsync-auth-cancel-btn" class="subsync-btn-secondary" type="button">닫기</button>
         </div>
@@ -76,7 +94,7 @@
       if (!button || button.disabled) return;
 
       button.disabled = true;
-      button.textContent = "Google 로그인 연결 중...";
+      renderGoogleButton(button, "Google 로그인 연결 중...", true);
 
       try {
         await SubSync.authService.loginWithGoogle();
@@ -90,7 +108,7 @@
       } catch (error) {
         alert(`Google 로그인 실패: ${error.message}`);
         button.disabled = false;
-        button.textContent = "Google로 계속하기";
+        renderGoogleButton(button, "Google로 계속하기", false);
       }
     });
   }

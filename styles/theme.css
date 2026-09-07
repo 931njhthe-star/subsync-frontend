@@ -212,6 +212,16 @@ body[data-subsync-theme] .subsync-btn-small:hover {
   color: #ffffff;
 }
 
+body[data-subsync-theme] .subsync-auth-button {
+  background: #ffffff;
+  color: #1f1f1f;
+}
+
+body[data-subsync-theme] .subsync-auth-button:hover:not(:disabled) {
+  background: #f1f3f4;
+  color: #1f1f1f;
+}
+
 body[data-subsync-theme] .subsync-btn-close {
   color: var(--subsync-text-muted);
 }

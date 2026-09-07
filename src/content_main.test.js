@@ -97,6 +97,9 @@ function createHarness(options = {}) {
     player: {
       getVideo() {
         return video;
+      },
+      getCurrentTime() {
+        return video.currentTime;
       }
     },
     subtitleView: {
@@ -278,6 +281,24 @@ test("playback changes the rendered subtitle when crossing into the next cue", a
   assert.equal(harness.renderCalls.length, 2);
   assert.equal(harness.renderCalls[0][1], first);
   assert.equal(harness.renderCalls[1][1], second);
+});
+
+test("exposes nearby subtitle context for the Video Tutor request", async () => {
+  const first = { timestamp: 0, end_timestamp: 1, learn: "First line", known: "첫 줄" };
+  const second = { timestamp: 1, end_timestamp: 2, learn: "Second line", known: "둘째 줄" };
+  const harness = createHarness({ builtSubtitles: [first, second] });
+  await flush();
+
+  harness.emit({ source: "SUBSYNC", type: "TRACKS", tracks: [{ lang: "en" }] });
+  harness.emit({
+    source: "SUBSYNC",
+    type: "TIMEDTEXT_URL",
+    url: "https://www.youtube.com/api/timedtext?captured=1"
+  });
+  await flush();
+  harness.setPlayback({ currentTime: 1.5 });
+
+  assert.deepEqual(harness.SubSync.getRecentSubtitles(), [first, second]);
 });
 
 test("clears rendered subtitles when navigation detects a new video", async () => {

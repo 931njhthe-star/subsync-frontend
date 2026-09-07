@@ -68,3 +68,10 @@
 - 메인 패널 헤더에 refresh SVG와 SubSync 재초기화 버튼을 추가해 Chrome 새로고침 없이 현재 영상 자막·Script를 재빌드
 - 자막 요청을 영상·요청 ID로 격리하고 갱신된 언어별 signed track URL 재사용, 빈 build 재시도, refresh 완료 대기 및 HTTP·빈 응답 오류 표시로 YouTube SPA 자막 lifecycle을 안정화
 - native CC를 확장앱이 조작하지 않고 webRequest로 실제 YouTube PO/client 문맥을 탭·영상별 임시 relay해 CC 비활성 상태에서도 영어·한국어 timedtext를 요청하도록 보강
+- 로컬 Video Tutor API(127.0.0.1:8000)의 ask·proactive·feedback 계약을 프론트 서비스·채팅 UI에 연결하고 자막 문맥·대화 ID·피드백 rating을 전달
+
+## 2026-09-07
+- 상단 `단어장`·`학습기록` 탭을 `저장소`로 통합하고 내부 `단어`·`문장`·`시청기록` 탭으로 재구성했으며 기존 wordHistory·savedWords·videoHistory 저장 구조는 유지
+- Chrome 확장앱 표시 이름을 `SubSync - Interactive Dual Subtitle & Video Tutor`에서 `SubSync`로 변경
+- AI Tutor 질문 대기 중 3개 점이 왼쪽에서 오른쪽으로 물결을 타며 움직이는 답변 준비 indicator를 추가
+- 로그인 탭의 텍스트를 공식 멀티컬러 Google G 로컬 SVG 아이콘으로 교체하고 접근성 라벨·hover 스타일을 유지

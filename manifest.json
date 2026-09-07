@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "SubSync - Interactive Dual Subtitle & Video Tutor",
+  "name": "SubSync",
   "version": "1.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA28AbUIGBne9DctO8dqOMXmfhTnoaC2YP15MAY95CkiGUDrseMMHmR1flZNTLZJyutrLQIEAp6cJYnYYcFKaMAVD/ngFzfs9MTf9AA2BI22jPMTAXXFHdo/VOr/bImHy/g44Glk0UV+xsnVjgeNcNFKexSGlNaezSDCn79Gg0RAZtSldYtD+lggZdANCIAeN6HxSvcqcS5ltaQsNwVNBWGajynx9Qx2GWapqtVecjyT6q9ouVDJEyYrkjqTZxB9SlRADfK+QdtLW1NK7cuQ2z4OkLFHdaa5XzfDIVd0MSmDVOG/e9vg++aSxXuxw8V8lVRZZXQ7OQtrE6Qe7adGS1kQIDAQAB",
   "description": "YouTube 영·한 이중자막, 마우스 단어 즉시 학습 및 Gemini Video Tutor 확장 프로그램",
   "action": {
     "default_popup": "popup.html"
@@ -64,10 +65,11 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "activeTab", "webRequest"],
+  "permissions": ["storage", "activeTab", "webRequest", "identity"],
   "host_permissions": [
     "https://www.youtube.com/*",
     "http://localhost:8000/*",
+    "http://127.0.0.1:8000/*",
     "https://api.subsync.xyz/*"
   ],
   "web_accessible_resources": [

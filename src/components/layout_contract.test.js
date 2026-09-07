@@ -31,6 +31,15 @@ test("main layout exposes an inline Script mount and resizer", () => {
   assert.match(layout, /getScriptArea\(\)/);
 });
 
+test("top navigation replaces the separate wordbook and learning-history tabs with Storage", () => {
+  assert.match(layout, /data-screen="storage"[^>]*>[\s\S]*저장소/);
+  assert.doesNotMatch(layout, /data-screen="words"/);
+  assert.doesNotMatch(layout, /data-screen="history"/);
+  assert.doesNotMatch(layout, />단어장<\/span>/);
+  assert.doesNotMatch(layout, />학습기록<\/span>/);
+  assert.match(layout, /id="subsync-screen-storage"/);
+});
+
 test("navigation uses one moving active indicator instead of per-tab background swaps", () => {
   assert.match(layout, /class="subsync-nav-active-indicator"/);
   assert.match(layout, /function updateNavIndicator\(\)/);

@@ -45,6 +45,39 @@
   opacity: 1;
 }
 
+.subsync-auth-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  padding: 3px;
+  border: 1px solid #747775;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1f1f1f;
+  line-height: 0;
+}
+
+.subsync-auth-button:hover:not(:disabled) {
+  background: #f1f3f4;
+  color: #1f1f1f;
+}
+
+.subsync-auth-button .subsync-auth-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  opacity: 1;
+}
+
+.subsync-auth-button.subsync-auth-logged-in {
+  width: auto;
+  padding: 4px 10px;
+  border-color: transparent;
+}
+
 .subsync-header-refresh-btn.subsync-refreshing .subsync-refresh-icon {
   animation: subsync-refresh-spin 700ms linear infinite;
 }

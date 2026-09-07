@@ -1,4 +1,4 @@
-// 학습 기록 화면 (단어 학습, 영상 시청 기록)
+// 저장소 화면 (단어, 문장, 시청기록)
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
@@ -58,7 +58,7 @@
       if (!isAuthed) {
         containerEl.innerHTML = `
           <div class="subsync-view-empty">
-            <p>나의 학습 기록을 확인하려면 로그인이 필요합니다.</p>
+            <p>저장소를 확인하려면 로그인이 필요합니다.</p>
             <button id="subsync-history-login-btn" class="subsync-btn-primary">로그인 / 회원가입</button>
           </div>
         `;
@@ -69,52 +69,74 @@
       }
 
       containerEl.innerHTML = `
-        <div class="subsync-history-tabs">
-          <button class="subsync-htab active" data-tab="words">단어 기록</button>
-          <button class="subsync-htab" data-tab="video">시청 기록</button>
+        <div class="subsync-history-tabs" role="tablist" aria-label="저장소 분류">
+          <button class="subsync-htab active" data-tab="words" role="tab" aria-selected="true">단어</button>
+          <button class="subsync-htab" data-tab="sentences" role="tab" aria-selected="false">문장</button>
+          <button class="subsync-htab" data-tab="video" role="tab" aria-selected="false">시청기록</button>
         </div>
         <div class="subsync-history-content" id="subsync-history-tab-body"></div>
       `;
 
       const tabBody = containerEl.querySelector("#subsync-history-tab-body");
-      await this.renderWordsHistory(tabBody);
+      await this.renderWords(tabBody);
 
       containerEl.querySelectorAll(".subsync-htab").forEach((tabBtn) => {
         tabBtn.addEventListener("click", () => {
-          containerEl.querySelectorAll(".subsync-htab").forEach((button) => button.classList.remove("active"));
-          tabBtn.classList.add("active");
+          containerEl.querySelectorAll(".subsync-htab").forEach((button) => {
+            const isActive = button === tabBtn;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-selected", String(isActive));
+          });
           const tab = tabBtn.dataset.tab;
-          void (tab === "words" ? this.renderWordsHistory(tabBody) : this.renderVideoHistory(tabBody));
+          if (tab === "words") {
+            void this.renderWords(tabBody);
+          } else if (tab === "sentences") {
+            void this.renderSentences(tabBody);
+          } else {
+            void this.renderVideoHistory(tabBody);
+          }
         });
       });
     },
 
-    async renderWordsHistory(containerEl) {
+    async renderWords(containerEl) {
       if (!containerEl) return;
-      containerEl.innerHTML = `<div class="subsync-view-loading">단어 기록을 불러오는 중...</div>`;
+      if (SubSync.savedWordsView?.render) {
+        await SubSync.savedWordsView.render(containerEl);
+        return;
+      }
+      containerEl.innerHTML = `<div class="subsync-view-empty">저장된 단어 화면을 불러올 수 없습니다.</div>`;
+    },
+
+    // 기존 wordHistory 데이터의 context_sentence를 문장 저장소로 표시한다.
+    async renderSentences(containerEl) {
+      if (!containerEl) return;
+      containerEl.innerHTML = `<div class="subsync-view-loading">저장된 문장을 불러오는 중...</div>`;
 
       const items = historyService() ? await historyService().getWordHistory() : [];
-      if (!items.length) {
-        containerEl.innerHTML = `<div class="subsync-view-empty">아직 학습한 단어가 없습니다.</div>`;
+      const sentences = items.filter((item) => String(item.context_sentence || "").trim());
+      if (!sentences.length) {
+        containerEl.innerHTML = `<div class="subsync-view-empty">아직 저장된 문장이 없습니다. 자막에서 단어를 학습해보세요.</div>`;
         return;
       }
 
       containerEl.innerHTML = `
-        <div class="subsync-history-local-note">이 브라우저에 저장된 단어 학습 활동</div>
+        <div class="subsync-history-local-note">단어 학습 중 만난 문장</div>
         <div class="subsync-history-list">
-          ${items.map((item) => `
-            <div class="subsync-history-item">
-              <div class="subsync-history-item-head">
-                <div class="subsync-h-word">${escapeHtml(item.word)}</div>
-                <span class="subsync-history-activity">${item.activity === "saved" ? "저장" : "클릭 학습"}</span>
-              </div>
-              ${item.meaning ? `<div class="subsync-h-meaning">${escapeHtml(item.meaning)}</div>` : ""}
-              ${item.context_sentence ? `<div class="subsync-h-context">“${escapeHtml(item.context_sentence)}”</div>` : ""}
+          ${sentences.map((item) => `
+            <div class="subsync-history-item subsync-sentence-item">
+              <div class="subsync-sentence-text">“${escapeHtml(item.context_sentence)}”</div>
+              <div class="subsync-sentence-word">${escapeHtml(item.word || "")} ${item.activity === "saved" ? "· 저장한 단어" : "· 학습한 단어"}</div>
               <div class="subsync-h-date">${formatDate(item.created_at || item.saved_at)}</div>
             </div>
           `).join("")}
         </div>
       `;
+    },
+
+    // 기존 호출 호환성을 유지하되 상단 학습기록 화면은 더 이상 노출하지 않는다.
+    async renderWordsHistory(containerEl) {
+      return this.renderSentences(containerEl);
     },
 
     async renderVideoHistory(containerEl) {

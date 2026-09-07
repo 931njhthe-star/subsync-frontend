@@ -11,13 +11,17 @@ const contentMain = fs.readFileSync(path.join(root, "content_main.js"), "utf8");
 const logService = fs.readFileSync(path.join(root, "services", "log_service.js"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "..", "manifest.json"), "utf8"));
 
-test("history tabs read distinct word and video records from the learning history service", () => {
+test("Storage tabs expose words, sentences, and watch history", () => {
   assert.match(historyView, /getWordHistory/);
   assert.match(historyView, /getVideoHistory/);
   assert.doesNotMatch(historyView, /현재 학습 중인 영상/);
   assert.doesNotMatch(historyView, /Video ID:/);
   assert.match(historyView, /data-tab="words"/);
+  assert.match(historyView, /data-tab="sentences"/);
   assert.match(historyView, /data-tab="video"/);
+  assert.match(historyView, />단어<\/button>/);
+  assert.match(historyView, />문장<\/button>/);
+  assert.match(historyView, />시청기록<\/button>/);
 });
 
 test("video history cards use a title, thumbnail, and linked YouTube destination", () => {

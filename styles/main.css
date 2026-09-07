@@ -563,7 +563,7 @@
   transform: translateX(16px);
 }
 
-/* 학습 기록 탭 */
+/* 저장소 내부 탭 */
 .subsync-history-tabs {
   display: flex;
   gap: 8px;
@@ -668,6 +668,19 @@
   font-size: 11px;
   font-style: italic;
   line-height: 1.35;
+}
+.subsync-sentence-item {
+  padding: 10px 12px;
+}
+.subsync-sentence-text {
+  color: var(--subsync-text-strong, #f1f2f6);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.subsync-sentence-word {
+  margin-top: 6px;
+  color: var(--subsync-accent-text, #66a0ff);
+  font-size: 11px;
 }
 .subsync-local-note {
   margin-left: 6px;

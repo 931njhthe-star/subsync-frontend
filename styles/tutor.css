@@ -1,4 +1,23 @@
 /* Video Tutor 채팅창 스타일 */
+@keyframes subsync-tutor-thinking-wave {
+  0%,
+  50%,
+  100% {
+    opacity: 0.36;
+    transform: translateY(2px) scale(0.82);
+  }
+
+  25% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1);
+  }
+
+  75% {
+    opacity: 0.28;
+    transform: translateY(4px) scale(0.78);
+  }
+}
+
 .subsync-tutor-box {
   background: rgba(0, 0, 0, 0.35);
   border-radius: 10px;
@@ -48,6 +67,51 @@
   background: rgba(255, 255, 255, 0.1);
   color: #f1f2f6;
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.subsync-msg.subsync-msg-thinking {
+  min-width: 44px;
+  padding: 10px 12px;
+}
+
+.subsync-tutor-thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 10px;
+}
+
+.subsync-tutor-thinking-dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.72);
+  animation-name: subsync-tutor-thinking-wave;
+  animation-duration: 980ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.subsync-tutor-thinking-dot:nth-child(1) {
+  animation-delay: -326ms;
+}
+
+.subsync-tutor-thinking-dot:nth-child(2) {
+  animation-delay: -163ms;
+}
+
+.subsync-tutor-thinking-dot:nth-child(3) {
+  animation-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subsync-tutor-box .subsync-tutor-thinking-dot {
+    animation: none;
+    opacity: 0.82;
+    transform: none;
+  }
 }
 
 .subsync-msg-feedback {

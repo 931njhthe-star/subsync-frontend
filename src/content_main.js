@@ -233,6 +233,29 @@
     return promise;
   }
 
+  SubSync.getRecentSubtitles = function getRecentSubtitles(limit = 8) {
+    if (!subtitles.length) return [];
+    const video = SubSync.player && SubSync.player.getVideo
+      ? SubSync.player.getVideo()
+      : null;
+    const currentTime = video && Number.isFinite(Number(video.currentTime))
+      ? Number(video.currentTime)
+      : subtitles[0].timestamp;
+    let nearestIndex = 0;
+    let nearestDistance = Infinity;
+    subtitles.forEach((subtitle, index) => {
+      const distance = Math.abs(Number(subtitle.timestamp) - currentTime);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    });
+    const safeLimit = Math.max(1, Math.min(100, Number(limit) || 8));
+    const before = Math.floor((safeLimit - 1) / 2);
+    const start = Math.max(0, Math.min(nearestIndex - before, subtitles.length - safeLimit));
+    return subtitles.slice(start, start + safeLimit);
+  };
+
   function startSync() {
     if (syncTimer) clearInterval(syncTimer);
     let watchSampleAt = null;

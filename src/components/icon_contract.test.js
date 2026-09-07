@@ -24,14 +24,15 @@ const icons = [
   "script",
   "search",
   "collapse",
-  "refresh"
+  "refresh",
+  "google"
 ];
 
-test("the original SubSync icon set contains eight local SVG assets", () => {
+test("the original SubSync icon set contains nine local SVG assets", () => {
   for (const name of icons) {
     const svg = fs.readFileSync(path.join(iconDir, `${name}.svg`), "utf8");
     assert.match(svg, /^<svg\b/);
-    assert.match(svg, /viewBox="0 0 24 24"/);
+    assert.match(svg, name === "google" ? /viewBox="0 0 118 120"/ : /viewBox="0 0 24 24"/);
     assert.match(svg, /stroke=/);
     assert.doesNotMatch(svg, /<script\b|<image\b|(?:href|xlink:href)=["']https?:\/\//i);
   }
@@ -51,17 +52,22 @@ test("icon assets use an extension URL helper and are exposed to YouTube", () =>
   assert.ok(manifest.web_accessible_resources[0].resources.includes("assets/fonts/*.woff"));
 });
 
-test("the six feature controls use the original SVG icon set", () => {
+test("the feature controls use the original SVG icon set", () => {
   assert.match(layout, /SubSync\.icon\("video-learning"/);
   assert.match(layout, /SubSync\.icon\("ai-tutor"/);
   assert.match(layout, /SubSync\.icon\("vocabulary"/);
-  assert.match(layout, /SubSync\.icon\("learning-history"/);
+  assert.doesNotMatch(layout, /SubSync\.icon\("learning-history"/);
   assert.match(layout, /SubSync\.icon\("settings"/);
   assert.match(layout, /SubSync\.icon\("script"/);
   assert.match(scriptPanel, /SubSync\.icon\("script"/);
   assert.match(scriptPanel, /SubSync\.icon\("search"/);
   assert.match(scriptPanel, /SubSync\.icon\("collapse"/);
   assert.match(tutorChat, /SubSync\.icon\("ai-tutor"/);
+  assert.match(
+    layout,
+    /id="subsync-auth-btn"[^>]*aria-label="Google로 로그인"[^>]*>\$\{SubSync\.icon\("google", "subsync-auth-icon"\)\}<\/button>/
+  );
+  assert.doesNotMatch(layout, /id="subsync-auth-btn"[^>]*>로그인<\/button>/);
 
   for (const legacyIcon of ["📺", "🤖", "⭐", "📊", "⚙️", "📜"]) {
     assert.doesNotMatch(layout, new RegExp(legacyIcon));
@@ -78,6 +84,7 @@ test("icon CSS keeps SVG sizing and state styling scoped to SubSync controls", (
   assert.match(iconCss, /height:\s*16px/);
   assert.match(iconCss, /\.subsync-nav-btn[^}]*\.subsync-ui-icon/);
   assert.match(iconCss, /\.subsync-nav-btn\.active[^}]*\.subsync-ui-icon/);
+  assert.match(iconCss, /\.subsync-auth-icon[\s\S]*width:\s*18px[\s\S]*height:\s*18px/);
   assert.match(iconCss, /\.subsync-script-panel-container\s+\.subsync-script-collapse-btn[\s\S]*left:\s*50%/);
   assert.match(iconCss, /subsync-script-collapse-collapsed/);
 });

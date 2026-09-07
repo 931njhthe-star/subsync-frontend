@@ -13,6 +13,7 @@ function createBackgroundHarness() {
   let onMessage;
   const stored = new Map();
   const fetchedUrls = [];
+  const contextUpdates = [];
 
   const context = {
     console: { log() {}, warn() {}, error() {} },
@@ -28,6 +29,7 @@ function createBackgroundHarness() {
     JSON,
     encodeURIComponent,
     decodeURIComponent,
+    setTimeout,
     fetch: async (url) => {
       fetchedUrls.push(url);
       return {
@@ -61,7 +63,13 @@ function createBackgroundHarness() {
         }
       }
     },
-    tabs: { onRemoved: { addListener() {} } },
+    tabs: {
+      onRemoved: { addListener() {} },
+      sendMessage(tabId, message) {
+        contextUpdates.push({ tabId, message });
+        return Promise.resolve();
+      }
+    },
     runtime: {
       onMessage: {
         addListener(listener) {
@@ -75,6 +83,7 @@ function createBackgroundHarness() {
 
   return {
     fetchedUrls,
+    contextUpdates,
     observe(details) {
       assert.ok(onBeforeRequest, "background must register webRequest observer");
       onBeforeRequest(details);
@@ -112,4 +121,40 @@ test("relays a Korean caption request with the observed PO/client context", asyn
   assert.equal(fetched.searchParams.get("c"), "WEB");
   assert.equal(fetched.searchParams.get("cver"), "2");
   assert.equal(fetched.searchParams.get("cplayer"), "WEB");
+});
+
+test("notifies the content script when a new PO context is observed", () => {
+  const harness = createBackgroundHarness();
+  harness.observe({
+    tabId: 7,
+    method: "GET",
+    url: "https://www.youtube.com/api/timedtext?v=video-1&lang=en&pot=fixture-pot&c=WEB"
+  });
+
+  assert.equal(harness.contextUpdates.length, 1);
+  assert.equal(harness.contextUpdates[0].tabId, 7);
+  assert.equal(harness.contextUpdates[0].message.type, "CAPTION_CONTEXT_UPDATED");
+  assert.equal(harness.contextUpdates[0].message.videoId, "video-1");
+  assert.equal(harness.contextUpdates[0].message.languageCode, "en");
+});
+
+test("waits briefly for a PO context that arrives after the first relay request", async () => {
+  const harness = createBackgroundHarness();
+  const responsePromise = harness.request({
+    type: "FETCH_CAPTION",
+    videoId: "video-2",
+    languageCode: "en",
+    url: "https://www.youtube.com/api/timedtext?v=video-2&lang=en"
+  });
+  setTimeout(() => {
+    harness.observe({
+      tabId: 7,
+      method: "GET",
+      url: "https://www.youtube.com/api/timedtext?v=video-2&lang=en&pot=late-pot&c=WEB"
+    });
+  }, 40);
+
+  const response = await responsePromise;
+  assert.equal(response.ok, true);
+  assert.equal(new URL(harness.fetchedUrls[0]).searchParams.get("pot"), "late-pot");
 });

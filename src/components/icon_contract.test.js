@@ -25,10 +25,12 @@ const icons = [
   "search",
   "collapse",
   "refresh",
-  "google"
+  "google",
+  "star",
+  "star-filled"
 ];
 
-test("the original SubSync icon set contains nine local SVG assets", () => {
+test("the original SubSync icon set contains twelve local SVG assets", () => {
   for (const name of icons) {
     const svg = fs.readFileSync(path.join(iconDir, `${name}.svg`), "utf8");
     assert.match(svg, /^<svg\b/);

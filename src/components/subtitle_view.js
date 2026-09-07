@@ -14,6 +14,7 @@
   const POSITION_RESET_MS = 360;
   const DEFAULT_OVERLAY_BOTTOM = 60;
 
+
   function clearInlinePosition(element) {
     if (!element || !element.style) return;
     POSITION_PROPERTIES.forEach((property) => {

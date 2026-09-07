@@ -76,6 +76,7 @@
 
 /* 2. 패널 내부 이중자막 박스 */
 .subsync-subtitle-box {
+  position: relative;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -84,6 +85,7 @@
   border-radius: 10px;
   border-left: 3px solid var(--subsync-accent, #3f7ff5);
 }
+
 
 .subsync-subtitle-box[data-caption-state="loading"],
 .subsync-subtitle-box[data-caption-state="ready"],

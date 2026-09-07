@@ -25,6 +25,7 @@
         "src/core/player.js",
         "src/core/icon_assets.js",
         "src/core/glass_filter.js",
+        "src/services/auth_config.js",
         "src/services/api_client.js",
         "src/services/auth_service.js",
         "src/services/settings_service.js",
@@ -70,7 +71,8 @@
     "https://www.youtube.com/*",
     "http://localhost:8000/*",
     "http://127.0.0.1:8000/*",
-    "https://api.subsync.xyz/*"
+    "https://api.subsync.xyz/*",
+    "https://*.supabase.co/*"
   ],
   "web_accessible_resources": [
     {

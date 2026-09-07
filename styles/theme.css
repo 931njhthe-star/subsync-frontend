@@ -261,9 +261,6 @@ body[data-subsync-theme] .subsync-h-word {
   color: var(--subsync-accent-text);
 }
 
-body[data-subsync-theme] .subsync-saved-time {
-  color: var(--subsync-blue);
-}
 
 body[data-subsync-theme] .subsync-saved-meaning,
 body[data-subsync-theme] .subsync-h-meaning,
@@ -598,8 +595,16 @@ body[data-subsync-theme] .subsync-popup-save-btn {
 }
 
 body[data-subsync-theme] .subsync-popup-save-btn:disabled {
-  background: rgba(18, 128, 92, 0.14);
-  color: var(--subsync-success);
+  background: var(--subsync-surface-strong);
+  color: var(--subsync-text-muted);
+  cursor: wait;
+  opacity: 0.72;
+}
+
+body[data-subsync-theme] .subsync-popup-save-btn.subsync-popup-save-saved {
+  background: rgba(255, 213, 74, 0.16);
+  color: #ffd54a;
+  box-shadow: 0 0 10px rgba(255, 213, 74, 0.28);
 }
 
 body[data-subsync-theme] .subsync-popup-context {

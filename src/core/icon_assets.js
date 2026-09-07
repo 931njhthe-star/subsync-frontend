@@ -12,7 +12,9 @@
     search: "search.svg",
     collapse: "collapse.svg",
     refresh: "refresh.svg",
-    google: "google.svg"
+    google: "google.svg",
+    star: "star.svg",
+    "star-filled": "star-filled.svg"
   });
 
   function iconUrl(name) {

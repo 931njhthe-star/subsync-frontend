@@ -69,6 +69,26 @@
   margin-top: 4px;
 }
 
+.subsync-auth-google-actions {
+  margin-top: 8px;
+}
+
+.subsync-auth-google-btn {
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.subsync-auth-google-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.subsync-auth-google-btn:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
 .subsync-btn-primary {
   flex: 1;
   background: var(--subsync-accent, #3f7ff5);

@@ -75,3 +75,10 @@
 - Chrome 확장앱 표시 이름을 `SubSync - Interactive Dual Subtitle & Video Tutor`에서 `SubSync`로 변경
 - AI Tutor 질문 대기 중 3개 점이 왼쪽에서 오른쪽으로 물결을 타며 움직이는 답변 준비 indicator를 추가
 - 로그인 탭의 텍스트를 공식 멀티컬러 Google G 로컬 SVG 아이콘으로 교체하고 접근성 라벨·hover 스타일을 유지
+- 오리지널 `star.svg`·`star-filled.svg`를 등록하고 Hover·상세 단어 팝업의 저장 버튼을 저장/취소 토글로 연결했으며 저장 시 노란색 filled star와 glow를 표시하고 문장 저장 버튼·저장 domain은 제외
+- 저장소 단어 기록 카드에 공통 Hover 뜻 툴팁과 문맥 전달을 연결하고 회귀 테스트를 추가
+- YouTube SPA 내비게이션 후 URL 반영 지연을 재시도해 새 영상 자막을 새로고침 없이 자동 로드하도록 개선
+- YouTube SPA의 navigate-start/page-data-updated 이벤트와 최신 player response를 연결하고 현재 video ID 일치 검증으로 이전 영상 자막 메타데이터를 차단
+- 자막 source 실패 시 레거시의 captions 모듈·tracklist·reload acquisition을 현재 영상별 warm-up에 이식하고 signed timedtext 확보 후 native caption 상태를 복구하도록 연결
+- 저장소에서 문장 탭과 단어 타임스탬프를 제거하고, 저장소 단어 별 취소 시 record ID 기반 삭제·목록 즉시 갱신·Hover 팝업 종료를 보장
+- Google OAuth 연결 준비: MV3 service worker PKCE OAuth flow, Supabase 공개 설정 파일, 세션 갱신·로그아웃, Google OAuth 설정 가이드를 추가

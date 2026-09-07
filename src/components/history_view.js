@@ -1,4 +1,4 @@
-// 저장소 화면 (단어, 문장, 시청기록)
+// 저장소 화면 (단어, 시청기록)
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
@@ -71,7 +71,6 @@
       containerEl.innerHTML = `
         <div class="subsync-history-tabs" role="tablist" aria-label="저장소 분류">
           <button class="subsync-htab active" data-tab="words" role="tab" aria-selected="true">단어</button>
-          <button class="subsync-htab" data-tab="sentences" role="tab" aria-selected="false">문장</button>
           <button class="subsync-htab" data-tab="video" role="tab" aria-selected="false">시청기록</button>
         </div>
         <div class="subsync-history-content" id="subsync-history-tab-body"></div>
@@ -88,13 +87,7 @@
             button.setAttribute("aria-selected", String(isActive));
           });
           const tab = tabBtn.dataset.tab;
-          if (tab === "words") {
-            void this.renderWords(tabBody);
-          } else if (tab === "sentences") {
-            void this.renderSentences(tabBody);
-          } else {
-            void this.renderVideoHistory(tabBody);
-          }
+          void (tab === "words" ? this.renderWords(tabBody) : this.renderVideoHistory(tabBody));
         });
       });
     },
@@ -108,36 +101,6 @@
       containerEl.innerHTML = `<div class="subsync-view-empty">저장된 단어 화면을 불러올 수 없습니다.</div>`;
     },
 
-    // 기존 wordHistory 데이터의 context_sentence를 문장 저장소로 표시한다.
-    async renderSentences(containerEl) {
-      if (!containerEl) return;
-      containerEl.innerHTML = `<div class="subsync-view-loading">저장된 문장을 불러오는 중...</div>`;
-
-      const items = historyService() ? await historyService().getWordHistory() : [];
-      const sentences = items.filter((item) => String(item.context_sentence || "").trim());
-      if (!sentences.length) {
-        containerEl.innerHTML = `<div class="subsync-view-empty">아직 저장된 문장이 없습니다. 자막에서 단어를 학습해보세요.</div>`;
-        return;
-      }
-
-      containerEl.innerHTML = `
-        <div class="subsync-history-local-note">단어 학습 중 만난 문장</div>
-        <div class="subsync-history-list">
-          ${sentences.map((item) => `
-            <div class="subsync-history-item subsync-sentence-item">
-              <div class="subsync-sentence-text">“${escapeHtml(item.context_sentence)}”</div>
-              <div class="subsync-sentence-word">${escapeHtml(item.word || "")} ${item.activity === "saved" ? "· 저장한 단어" : "· 학습한 단어"}</div>
-              <div class="subsync-h-date">${formatDate(item.created_at || item.saved_at)}</div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    },
-
-    // 기존 호출 호환성을 유지하되 상단 학습기록 화면은 더 이상 노출하지 않는다.
-    async renderWordsHistory(containerEl) {
-      return this.renderSentences(containerEl);
-    },
 
     async renderVideoHistory(containerEl) {
       if (!containerEl) return;

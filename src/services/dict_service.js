@@ -58,6 +58,7 @@
         context_sentence: sentence
       };
 
+      let result;
       try {
         const response = await SubSync.apiClient.request("/words/save", {
           method: "POST",
@@ -70,14 +71,19 @@
             local_only: false
           });
         }
-        return response;
+        result = response;
       } catch (error) {
         if (!SubSync.learningHistory) throw error;
-        return await SubSync.learningHistory.saveWord({
+        result = await SubSync.learningHistory.saveWord({
           ...payload,
           local_only: true
         });
       }
+
+      if (SubSync.savedWordsView && SubSync.savedWordsView.refresh) {
+        await SubSync.savedWordsView.refresh();
+      }
+      return result;
     },
 
     async removeWord(savedWord = {}) {

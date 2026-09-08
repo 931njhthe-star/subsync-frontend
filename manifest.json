@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SubSync",
   "version": "1.0.0",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA28AbUIGBne9DctO8dqOMXmfhTnoaC2YP15MAY95CkiGUDrseMMHmR1flZNTLZJyutrLQIEAp6cJYnYYcFKaMAVD/ngFzfs9MTf9AA2BI22jPMTAXXFHdo/VOr/bImHy/g44Glk0UV+xsnVjgeNcNFKexSGlNaezSDCn79Gg0RAZtSldYtD+lggZdANCIAeN6HxSvcqcS5ltaQsNwVNBWGajynx9Qx2GWapqtVecjyT6q9ouVDJEyYrkjqTZxB9SlRADfK+QdtLW1NK7cuQ2z4OkLFHdaa5XzfDIVd0MSmDVOG/e9vg++aSxXuxw8V8lVRZZXQ7OQtrE6Qe7adGS1kQIDAQAB",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp3eApwOOJ3Pe6abBy4l8BqA8mzVo/rDUNFtXdC2cDzt60M2Mq/MPsBckR7Yr4RalYV896QoFYySYfav5hjOlEYJdnBYlEMIkC37OYKPJGZR6EeNU3xOcwvwfVo6m9bgr+P++20vR4D0Xig6A0dYMbMCCSoHYvikDFjG5w70lYb8sr+sDU4PErBIbfFarYr0rc4yHwjxeYOK5WbQBUIq9gEtqMuqLhU/eIQVffD3WRMnP4fxPwvc+nI1gc6VYDdbEiCBqUSI7v49QUJXOsdF0s7avHBztRysH0LV68xqfhwg6bgsTDP+tX+FlsoJORcJ8QoRGu2NRwcjKg4CMJjoUBwIDAQAB",
   "description": "YouTube 영·한 이중자막, 마우스 단어 즉시 학습 및 Gemini Video Tutor 확장 프로그램",
   "action": {
     "default_popup": "popup.html"

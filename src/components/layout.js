@@ -244,7 +244,9 @@
 
       // 이벤트 바인딩
       this.bindEvents();
-      this.updateAuthUI();
+      await this.updateAuthUI();
+      // 인증 복원 중 저장소 탭으로 전환된 경우에도 최신 상태를 반영한다.
+      await this.renderCurrentScreen();
 
       return rootEl;
     },
@@ -310,12 +312,26 @@
         const isAuthed = await SubSync.authService.isAuthenticated();
         if (isAuthed) {
           await SubSync.authService.logout();
-          this.updateAuthUI();
+          await this.updateAuthUI();
+          await this.renderCurrentScreen();
           alert("로그아웃 되었습니다.");
         } else {
-          SubSync.authModal.show(() => this.updateAuthUI());
+          SubSync.authModal.show(async () => {
+            await this.updateAuthUI();
+            await this.renderCurrentScreen();
+          });
         }
       });
+    },
+
+    async renderCurrentScreen() {
+      if (currentScreen === "storage") {
+        return SubSync.historyView.render(document.getElementById("subsync-storage-area"));
+      }
+      if (currentScreen === "settings") {
+        return SubSync.settingsView.render(document.getElementById("subsync-settings-area"));
+      }
+      return undefined;
     },
 
     switchScreen(screenName) {
@@ -350,13 +366,7 @@
       }
 
       updateNavIndicator();
-
-      // 화면별 동적 렌더링 호출
-      if (screenName === "storage") {
-        SubSync.historyView.render(document.getElementById("subsync-storage-area"));
-      } else if (screenName === "settings") {
-        SubSync.settingsView.render(document.getElementById("subsync-settings-area"));
-      }
+      this.renderCurrentScreen();
     },
 
     async updateAuthUI() {

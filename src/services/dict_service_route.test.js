@@ -6,13 +6,15 @@ const vm = require("node:vm");
 
 const source = fs.readFileSync(path.join(__dirname, "dict_service.js"), "utf8");
 
-function loadDictService(response = {}) {
+function loadDictService(response = {}, dependencies = {}) {
   const calls = [];
   const values = new Map();
   const SubSync = {
+    ...dependencies,
     apiClient: {
       async request(endpoint, options) {
         calls.push({ endpoint, options });
+        if (dependencies.requestError) throw dependencies.requestError;
         return response;
       }
     }
@@ -47,4 +49,53 @@ test("uses the backend dictionary route for hover and detail lookups", async () 
     calls[1].endpoint,
     "/dictionary/detail?word=honest&context=Be%20honest%20with%20yourself."
   );
+});
+
+test("refreshes an open saved words view after saving a word", async () => {
+  let refreshCount = 0;
+  const savedItems = [];
+  const response = { id: "remote-word-1", word: "night", meaning: "밤" };
+  const { dictService } = loadDictService(response, {
+    learningHistory: {
+      async saveWord(item) {
+        savedItems.push(item);
+        return item;
+      }
+    },
+    savedWordsView: {
+      async refresh() {
+        refreshCount += 1;
+      }
+    }
+  });
+
+  await dictService.saveWord("night", "밤", "A good night.");
+
+  assert.equal(savedItems.length, 1);
+  assert.equal(refreshCount, 1);
+});
+
+test("refreshes an open saved words view after local fallback save", async () => {
+  let refreshCount = 0;
+  const savedItems = [];
+  const { dictService } = loadDictService({}, {
+    requestError: new Error("backend unavailable"),
+    learningHistory: {
+      async saveWord(item) {
+        savedItems.push(item);
+        return item;
+      }
+    },
+    savedWordsView: {
+      async refresh() {
+        refreshCount += 1;
+      }
+    }
+  });
+
+  await dictService.saveWord("night", "밤", "A good night.");
+
+  assert.equal(savedItems.length, 1);
+  assert.equal(savedItems[0].local_only, true);
+  assert.equal(refreshCount, 1);
 });

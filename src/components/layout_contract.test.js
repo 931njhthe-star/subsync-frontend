@@ -138,3 +138,13 @@ test("the AI Tutor content fills the resized main panel", () => {
   assert.match(tutorCss, /\.subsync-tutor-messages[\s\S]*flex:\s*1\s*1\s*auto/);
   assert.match(tutorCss, /\.subsync-tutor-messages[\s\S]*max-height:\s*none/);
 });
+
+test("authentication changes rerender the current data screen", () => {
+  const authSectionStart = layout.indexOf("// 로그인/로그아웃 버튼");
+  const screenSwitchStart = layout.indexOf("switchScreen(screenName)");
+  const authSection = layout.slice(authSectionStart, screenSwitchStart);
+
+  assert.match(layout, /renderCurrentScreen\(\)/);
+  assert.match(authSection, /authModal\.show\((?:async )?\(\) => \{[\s\S]*renderCurrentScreen\(\)/);
+  assert.match(authSection, /await this\.renderCurrentScreen\(\)/);
+});

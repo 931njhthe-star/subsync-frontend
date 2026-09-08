@@ -38,14 +38,14 @@
         return JSON.parse(cached);
       }
 
-      const res = await SubSync.apiClient.request(`/dict/hover?word=${encodeURIComponent(cleanWord)}`);
+      const res = await SubSync.apiClient.request(`/dictionary/hover?word=${encodeURIComponent(cleanWord)}`);
       sessionStorage.setItem(cacheKey, JSON.stringify(res));
       return res;
     },
 
     async getDetailMeaning(word, sentence) {
       const cleanWord = word.toLowerCase().trim();
-      const query = `/dict/detail?word=${encodeURIComponent(cleanWord)}&context=${encodeURIComponent(sentence || "")}`;
+      const query = `/dictionary/detail?word=${encodeURIComponent(cleanWord)}&context=${encodeURIComponent(sentence || "")}`;
       return await SubSync.apiClient.request(query);
     },
 

@@ -9,8 +9,11 @@
     : {};
   const supabaseUrl = String(configured.supabaseUrl || "https://xlzfuotapkdvyuqdmmxz.supabase.co");
   const supabasePublishableKey = String(
-    configured.supabasePublishableKey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsemZ1b3RhcGtkdnl1cWRtbXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NTk0MTAsImV4cCI6MjEwNDMzNTQxMH0.oYnEUIwLkx1GQKQuWWFBlSO8-zPU-UDOYpsWR6ZSoas"
-  );
+    //configured.supabasePublishableKey  "YOUR_SUPABASE_PUBLISHABLE_KEY"
+    configured.supabasePublishableKey || "sb_publishable_W4i2uMJjUPHtzVYezWA8iw_Chu4xrzT");
+  // const supabasePublishableKey = String(
+  //   configured.supabasePublishableKey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsemZ1b3RhcGtkdnl1cWRtbXh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NTk0MTAsImV4cCI6MjEwNDMzNTQxMH0.oYnEUIwLkx1GQKQuWWFBlSO8-zPU-UDOYpsWR6ZSoas"
+  // );
 
   function isConfigured() {
     return (

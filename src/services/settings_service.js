@@ -21,7 +21,6 @@
     scriptVisible: false,       // Script 패널 ON/OFF
     tutorEnabled: true,         // Video Tutor ON/OFF
     proactiveTutor: true,       // Tutor 선제 질문 ON/OFF
-    saveMode: "auto",           // 단어 저장 방식: "auto" (좌클릭 시 자동 저장) | "manual" (저장 버튼 눌러 저장)
     theme: "dark",              // 화면 테마: "dark" | "light" | "glass"
     fontFamily: "system"        // UI 폰트: "system" | "gmarket"
   };

@@ -19,6 +19,7 @@
   }
 
   let activeContainerEl = null;
+  let renderGeneration = 0;
 
   SubSync.savedWordsView = {
     async getItems() {
@@ -39,8 +40,10 @@
     async render(containerEl) {
       if (!containerEl) return;
       activeContainerEl = containerEl;
+      const currentGeneration = ++renderGeneration;
 
       const isAuthed = await SubSync.authService.isAuthenticated();
+      if (currentGeneration !== renderGeneration) return;
       if (!isAuthed) {
         containerEl.innerHTML = `
           <div class="subsync-view-empty">
@@ -56,6 +59,7 @@
 
       containerEl.innerHTML = `<div class="subsync-view-loading">저장된 단어를 불러오는 중...</div>`;
       const { items, localOnly } = await this.getItems();
+      if (currentGeneration !== renderGeneration) return;
 
       if (!items.length) {
         containerEl.innerHTML = `<div class="subsync-view-empty">아직 저장한 단어가 없습니다. 영상 자막에서 단어를 클릭해 저장해보세요!</div>`;

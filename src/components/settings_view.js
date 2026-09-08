@@ -45,20 +45,6 @@
             </label>
           </div>
 
-          <div class="subsync-setting-section">
-            <div class="subsync-st-title">단어 저장 방식</div>
-            <div class="subsync-radio-group">
-              <label>
-                <input type="radio" name="saveMode" value="auto" ${s.saveMode === "auto" ? "checked" : ""}>
-                좌클릭 시 자동 저장
-              </label>
-              <label>
-                <input type="radio" name="saveMode" value="manual" ${s.saveMode === "manual" ? "checked" : ""}>
-                저장 버튼을 눌러 저장
-              </label>
-            </div>
-          </div>
-
           <div class="subsync-setting-section subsync-theme-section">
             <div class="subsync-st-title">화면 테마</div>
             <div class="subsync-st-desc">SubSync 패널의 색상 테마를 선택</div>
@@ -109,13 +95,6 @@
       });
       document.getElementById("subsync-st-proactive")?.addEventListener("change", (e) => {
         SubSync.settings.set("proactiveTutor", e.target.checked);
-      });
-      containerEl.querySelectorAll('input[name="saveMode"]').forEach((radio) => {
-        radio.addEventListener("change", (e) => {
-          if (e.target.checked) {
-            SubSync.settings.set("saveMode", e.target.value);
-          }
-        });
       });
       containerEl.querySelectorAll('input[name="theme"]').forEach((radio) => {
         radio.addEventListener("change", (e) => {

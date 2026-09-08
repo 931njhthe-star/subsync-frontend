@@ -309,7 +309,11 @@
 
       // 로그인/로그아웃 버튼
       document.getElementById("subsync-auth-btn").addEventListener("click", async () => {
-        const isAuthed = await SubSync.authService.isAuthenticated();
+        const authButton = document.getElementById("subsync-auth-btn");
+        if (authButton?.dataset.authReady !== "true") {
+          await this.updateAuthUI();
+        }
+        const isAuthed = authButton?.dataset.authenticated === "true";
         if (isAuthed) {
           await SubSync.authService.logout();
           await this.updateAuthUI();
@@ -373,6 +377,8 @@
       const isAuthed = await SubSync.authService.isAuthenticated();
       const authBtn = document.getElementById("subsync-auth-btn");
       if (!authBtn) return;
+      authBtn.dataset.authenticated = isAuthed ? "true" : "false";
+      authBtn.dataset.authReady = "true";
 
       if (isAuthed) {
         authBtn.textContent = "로그아웃";

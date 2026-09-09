@@ -37,13 +37,20 @@
       }
     },
 
-    async render(containerEl) {
+    async render(containerEl, options = {}) {
       if (!containerEl) return;
+      const isWordsTab = () => {
+        const activeTab = containerEl.dataset?.subsyncHistoryTab;
+        return !activeTab || activeTab === "words";
+      };
+      if (!isWordsTab()) return;
+      const isCurrent = typeof options.isCurrent === "function" ? options.isCurrent : () => true;
       activeContainerEl = containerEl;
       const currentGeneration = ++renderGeneration;
+      const isRenderCurrent = () => currentGeneration === renderGeneration && isCurrent() && isWordsTab();
 
       const isAuthed = await SubSync.authService.isAuthenticated();
-      if (currentGeneration !== renderGeneration) return;
+      if (!isRenderCurrent()) return;
       if (!isAuthed) {
         containerEl.innerHTML = `
           <div class="subsync-view-empty">
@@ -59,7 +66,7 @@
 
       containerEl.innerHTML = `<div class="subsync-view-loading">저장된 단어를 불러오는 중...</div>`;
       const { items, localOnly } = await this.getItems();
-      if (currentGeneration !== renderGeneration) return;
+      if (!isRenderCurrent()) return;
 
       if (!items.length) {
         containerEl.innerHTML = `<div class="subsync-view-empty">아직 저장한 단어가 없습니다. 영상 자막에서 단어를 클릭해 저장해보세요!</div>`;
@@ -127,6 +134,7 @@
 
     async refresh() {
       if (!activeContainerEl) return;
+      if (activeContainerEl.dataset?.subsyncHistoryTab && activeContainerEl.dataset.subsyncHistoryTab !== "words") return;
       await this.render(activeContainerEl);
     }
   };

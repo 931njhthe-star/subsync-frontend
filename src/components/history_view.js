@@ -26,6 +26,13 @@
     return `${minutes}:${remainder}`;
   }
 
+  let activeContainerEl = null;
+  let historyRenderGeneration = 0;
+
+  function isCurrentHistoryRender(containerEl, generation) {
+    return activeContainerEl === containerEl && historyRenderGeneration === generation;
+  }
+
   function historyService() {
     return SubSync.learningHistory;
   }
@@ -53,8 +60,12 @@
   SubSync.historyView = {
     async render(containerEl) {
       if (!containerEl) return;
+      activeContainerEl = containerEl;
+      const generation = ++historyRenderGeneration;
+      const isCurrentRender = () => isCurrentHistoryRender(containerEl, generation);
 
       const isAuthed = await SubSync.authService.isAuthenticated();
+      if (!isCurrentRender()) return;
       if (!isAuthed) {
         containerEl.innerHTML = `
           <div class="subsync-view-empty">
@@ -77,36 +88,46 @@
       `;
 
       const tabBody = containerEl.querySelector("#subsync-history-tab-body");
-      await this.renderWords(tabBody);
+      if (tabBody?.dataset) tabBody.dataset.subsyncHistoryTab = "words";
+      await this.renderWords(tabBody, isCurrentRender);
+      if (!isCurrentRender()) return;
 
       containerEl.querySelectorAll(".subsync-htab").forEach((tabBtn) => {
         tabBtn.addEventListener("click", () => {
+          const tab = tabBtn.dataset.tab;
+          const tabGeneration = ++historyRenderGeneration;
+          const isCurrentTab = () => isCurrentHistoryRender(containerEl, tabGeneration);
+
           containerEl.querySelectorAll(".subsync-htab").forEach((button) => {
             const isActive = button === tabBtn;
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-selected", String(isActive));
           });
-          const tab = tabBtn.dataset.tab;
-          void (tab === "words" ? this.renderWords(tabBody) : this.renderVideoHistory(tabBody));
+          if (tabBody?.dataset) tabBody.dataset.subsyncHistoryTab = tab;
+          void (tab === "words"
+            ? this.renderWords(tabBody, isCurrentTab)
+            : this.renderVideoHistory(tabBody, isCurrentTab));
         });
       });
     },
 
-    async renderWords(containerEl) {
-      if (!containerEl) return;
+    async renderWords(containerEl, isCurrent = () => true) {
+      if (!containerEl || !isCurrent()) return;
       if (SubSync.savedWordsView?.render) {
-        await SubSync.savedWordsView.render(containerEl);
+        await SubSync.savedWordsView.render(containerEl, { isCurrent });
         return;
       }
+      if (!isCurrent()) return;
       containerEl.innerHTML = `<div class="subsync-view-empty">저장된 단어 화면을 불러올 수 없습니다.</div>`;
     },
 
 
-    async renderVideoHistory(containerEl) {
-      if (!containerEl) return;
+    async renderVideoHistory(containerEl, isCurrent = () => true) {
+      if (!containerEl || !isCurrent()) return;
       containerEl.innerHTML = `<div class="subsync-view-loading">시청 기록을 불러오는 중...</div>`;
 
       const items = historyService() ? await historyService().getVideoHistory() : [];
+      if (!isCurrent()) return;
       if (!items.length) {
         containerEl.innerHTML = `<div class="subsync-view-empty">아직 시청 기록이 없습니다. 영상을 재생해보세요.</div>`;
         return;

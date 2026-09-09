@@ -84,6 +84,45 @@
               </label>
             </div>
           </div>
+          <div class="subsync-setting-section subsync-about-section" aria-labelledby="subsync-about-title">
+            <div id="subsync-about-title" class="subsync-st-title">About</div>
+            <div class="subsync-st-desc">엔코아 멀티 에이전트 AI 오케스트레이션 2기</div>
+            <div class="subsync-about-team" role="table" aria-label="엔코아 멀티 에이전트 AI 오케스트레이션 2기 팀 정보">
+              <div class="subsync-about-team-row subsync-about-team-head" role="row">
+                <span role="columnheader">이름</span>
+                <span role="columnheader">역할 · 담당 영역</span>
+                <span role="columnheader">GitHub</span>
+              </div>
+              <div class="subsync-about-team-row" role="row">
+                <span role="cell" class="subsync-about-member-name">노지훈</span>
+                <span role="cell">팀장 · PM &amp; BE</span>
+                <a role="cell" class="subsync-about-github" href="https://github.com/931njhthe-star" target="_blank" rel="noopener noreferrer" aria-label="노지훈 GitHub 열기">열기 ↗</a>
+              </div>
+              <div class="subsync-about-team-row" role="row">
+                <span role="cell" class="subsync-about-member-name">김훈</span>
+                <span role="cell">팀원 · FE</span>
+                <a role="cell" class="subsync-about-github" href="https://github.com/teach97" target="_blank" rel="noopener noreferrer" aria-label="김훈 GitHub 열기">열기 ↗</a>
+              </div>
+              <div class="subsync-about-team-row" role="row">
+                <span role="cell" class="subsync-about-member-name">전소예</span>
+                <span role="cell">팀원 · DB</span>
+                <a role="cell" class="subsync-about-github" href="https://github.com/soyedev" target="_blank" rel="noopener noreferrer" aria-label="전소예 GitHub 열기">열기 ↗</a>
+              </div>
+              <div class="subsync-about-team-row" role="row">
+                <span role="cell" class="subsync-about-member-name">박서윤</span>
+                <span role="cell">팀원 · BE</span>
+                <a role="cell" class="subsync-about-github" href="https://github.com/seoyun-park" target="_blank" rel="noopener noreferrer" aria-label="박서윤 GitHub 열기">열기 ↗</a>
+              </div>
+              <div class="subsync-about-team-row" role="row">
+                <span role="cell" class="subsync-about-member-name">최경락</span>
+                <span role="cell">팀원 (기록자) · AI</span>
+                <a role="cell" class="subsync-about-github" href="https://github.com/Kyeongrak-Choi" target="_blank" rel="noopener noreferrer" aria-label="최경락 GitHub 열기">열기 ↗</a>
+              </div>
+            </div>
+            <a class="subsync-about-privacy" href="https://931njhthe-star.github.io/subsync-frontend/privacy.html" target="_blank" rel="noopener noreferrer">
+              개인정보 처리방침 <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         </div>
       `;
 

@@ -99,3 +99,4 @@
 
 ## 2026-09-09
 - 설정창 About 섹션에 엔코아 멀티 에이전트 AI 오케스트레이션 2기 팀 정보와 팀원별 GitHub 링크, 공개 개인정보처리방침 링크를 추가
+- About 팀 정보에서 역할 열을 제거하고 담당 영역을 PM, Frontend, Dashboard, Backend, AI로 표기

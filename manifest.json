@@ -66,7 +66,7 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": ["storage", "activeTab", "webRequest", "identity"],
+  "permissions": ["storage", "webRequest", "identity"],
   "host_permissions": [
     "https://www.youtube.com/*",
     "http://localhost:8000/*",

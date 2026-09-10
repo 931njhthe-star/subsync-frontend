@@ -4,6 +4,125 @@
 
   let overlayEl = null;
   let currentSub = null;
+  let currentRenderKey = null;
+  let currentSideContainerEl = null;
+  let currentOverlayEl = null;
+  let captionExitTimer = null;
+  let positionResetTimer = null;
+
+  const POSITION_PROPERTIES = ["left", "top", "right", "bottom", "transform"];
+  const POSITION_RESET_MS = 360;
+  const DEFAULT_OVERLAY_BOTTOM = 60;
+
+
+  function clearInlinePosition(element) {
+    if (!element || !element.style) return;
+    POSITION_PROPERTIES.forEach((property) => {
+      if (typeof element.style.removeProperty === "function") {
+        element.style.removeProperty(property);
+      } else {
+        element.style[property] = "";
+      }
+    });
+  }
+
+  function clearPositionResetTimer() {
+    if (positionResetTimer) {
+      clearTimeout(positionResetTimer);
+      positionResetTimer = null;
+    }
+  }
+
+  function getDefaultOverlayPosition(element) {
+    const parent = element?.offsetParent || element?.parentElement || element?.parentNode;
+    if (
+      !parent ||
+      typeof parent.getBoundingClientRect !== "function" ||
+      typeof element.getBoundingClientRect !== "function"
+    ) {
+      return null;
+    }
+
+    const parentRect = parent.getBoundingClientRect();
+    const overlayRect = element.getBoundingClientRect();
+    return {
+      left: parentRect.width / 2,
+      top: parentRect.height - DEFAULT_OVERLAY_BOTTOM - overlayRect.height
+    };
+  }
+
+  function resetOverlayPosition() {
+    if (!overlayEl) return;
+    clearPositionResetTimer();
+
+    const defaultPosition = getDefaultOverlayPosition(overlayEl);
+    overlayEl.classList.remove("subsync-dragging", "subsync-position-resetting");
+    overlayEl.classList.add("subsync-position-resetting");
+
+    // transition이 현재 위치에서 시작하도록 dragged 상태의 축을 고정한다.
+    overlayEl.style.right = "auto";
+    overlayEl.style.bottom = "auto";
+    overlayEl.style.transform = "translateX(-50%)";
+    void overlayEl.offsetWidth;
+
+    if (defaultPosition) {
+      overlayEl.style.left = `${Math.round(defaultPosition.left)}px`;
+      overlayEl.style.top = `${Math.round(defaultPosition.top)}px`;
+    }
+
+    positionResetTimer = setTimeout(() => {
+      if (overlayEl) {
+        clearInlinePosition(overlayEl);
+        overlayEl.classList.remove("subsync-position-resetting");
+      }
+      positionResetTimer = null;
+    }, POSITION_RESET_MS);
+  }
+
+  function attachPositionReset(element) {
+    if (!element || element.__subsyncPositionResetAttached) return;
+
+    element.addEventListener("pointerdown", () => {
+      clearPositionResetTimer();
+      element.classList.remove("subsync-position-resetting");
+    });
+    element.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      resetOverlayPosition();
+    });
+    element.__subsyncPositionResetAttached = true;
+  }
+
+  function restartAnimation(element, className) {
+    if (!element || !element.classList) return;
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+  }
+
+  function clearCaptionExitTimer() {
+    if (captionExitTimer) {
+      clearTimeout(captionExitTimer);
+      captionExitTimer = null;
+    }
+  }
+
+  function makeRenderKey(subtitle, isSubsyncEnabled, isDualSubEnabled) {
+    return JSON.stringify({
+      enabled: Boolean(isSubsyncEnabled),
+      dual: Boolean(isDualSubEnabled),
+      subtitle: subtitle
+        ? {
+            videoId: subtitle.video_id || "",
+            timestamp: subtitle.timestamp ?? null,
+            endTimestamp: subtitle.end_timestamp ?? null,
+            learn: subtitle.learn || "",
+            known: subtitle.known || ""
+          }
+        : null
+    });
+  }
 
   function ensureVideoOverlay() {
     if (overlayEl && document.body.contains(overlayEl)) return overlayEl;
@@ -32,23 +151,55 @@
     }
 
     playerContainer.appendChild(overlayEl);
+    if (SubSync.drag && SubSync.drag.attach) {
+      SubSync.drag.attach(overlayEl, overlayEl, { preserveCenterX: true });
+    }
+    attachPositionReset(overlayEl);
     return overlayEl;
   }
 
   SubSync.subtitleView = {
     render(sideContainerEl, subtitle) {
-      if (currentSub === subtitle) return;
-      currentSub = subtitle;
-
-      // 1. YouTube 영상 화면 위 오버레이 렌더링
-      const overlay = ensureVideoOverlay();
       const isSubsyncEnabled = SubSync.settings ? SubSync.settings.get("subsyncEnabled") : true;
       const isDualSubEnabled = SubSync.settings ? SubSync.settings.get("dualSubtitle") : true;
+      const overlay = ensureVideoOverlay();
+      const renderKey = makeRenderKey(subtitle, isSubsyncEnabled, isDualSubEnabled);
 
+      if (
+        currentRenderKey === renderKey &&
+        currentSideContainerEl === sideContainerEl &&
+        currentOverlayEl === overlay
+      ) {
+        return;
+      }
+
+      currentSub = subtitle;
+      currentRenderKey = renderKey;
+      currentSideContainerEl = sideContainerEl;
+      currentOverlayEl = overlay;
+
+      // 1. YouTube 영상 화면 위 오버레이 렌더링
+      const isSubtitleVisible = isSubsyncEnabled && isDualSubEnabled && Boolean(subtitle);
       if (overlay) {
-        if (!isSubsyncEnabled || !isDualSubEnabled || !subtitle) {
-          overlay.style.display = "none";
+        if (!isSubtitleVisible) {
+          overlay.style.display = "flex";
+          const content = overlay.querySelector && overlay.querySelector(".subsync-overlay-content");
+          if (content) {
+            content.classList.remove("subsync-caption-entering");
+            content.classList.add("subsync-caption-exiting");
+            clearCaptionExitTimer();
+            captionExitTimer = setTimeout(() => {
+              if (overlayEl && !currentSub) {
+                overlayEl.style.display = "none";
+                content.classList.remove("subsync-caption-exiting");
+              }
+              captionExitTimer = null;
+            }, 180);
+          } else {
+            overlay.style.display = "none";
+          }
         } else {
+          clearCaptionExitTimer();
           overlay.style.display = "flex";
           const enEl = document.getElementById("subsync-overlay-en-text");
           const koEl = document.getElementById("subsync-overlay-ko-text");
@@ -59,6 +210,14 @@
           if (koEl) {
             koEl.textContent = subtitle.known || "";
             koEl.style.display = subtitle.known ? "block" : "none";
+          }
+          if (overlay.querySelector) {
+            const content = overlay.querySelector(".subsync-overlay-content");
+            if (content) content.classList.remove("subsync-caption-exiting");
+            restartAnimation(
+              content,
+              "subsync-caption-entering"
+            );
           }
         }
       }
@@ -79,12 +238,38 @@
         if (learnSideEl) {
           SubSync.interactiveText.attach(learnSideEl, subtitle.learn, subtitle.learn);
         }
+        restartAnimation(sideContainerEl, "subsync-content-changing");
       }
     },
 
     clear() {
       currentSub = null;
-      if (overlayEl) overlayEl.style.display = "none";
+      currentRenderKey = null;
+      currentSideContainerEl = null;
+      currentOverlayEl = null;
+      if (overlayEl) {
+        if (overlayEl.style.display === "none") return;
+        overlayEl.style.display = "flex";
+        const content = overlayEl.querySelector && overlayEl.querySelector(".subsync-overlay-content");
+        if (!content) {
+          overlayEl.style.display = "none";
+          return;
+        }
+        content.classList.remove("subsync-caption-entering");
+        content.classList.add("subsync-caption-exiting");
+        clearCaptionExitTimer();
+        captionExitTimer = setTimeout(() => {
+          if (overlayEl && !currentSub) {
+            overlayEl.style.display = "none";
+            content.classList.remove("subsync-caption-exiting");
+          }
+          captionExitTimer = null;
+        }, 180);
+      }
+    },
+
+    resetPosition() {
+      resetOverlayPosition();
     }
   };
 })();

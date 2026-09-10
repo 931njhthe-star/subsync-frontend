@@ -17,10 +17,16 @@
           span.textContent = token;
           span.dataset.word = token.toLowerCase();
 
-          if (onWordHover) {
-            span.addEventListener("mouseenter", (e) => onWordHover(token, span, e));
-            span.addEventListener("mouseleave", () => onWordHover(null, span));
-          }
+          // CSS :hover만으로는 외부 페이지 스타일과의 cascade 충돌 시
+          // 시각 상태가 사라질 수 있으므로, 포인터 상태를 명시적 클래스로 유지한다.
+          span.addEventListener("mouseenter", (e) => {
+            span.classList.add("subsync-word-hovered");
+            if (onWordHover) onWordHover(token, span, e);
+          });
+          span.addEventListener("mouseleave", () => {
+            span.classList.remove("subsync-word-hovered");
+            if (onWordHover) onWordHover(null, span);
+          });
           if (onWordClick) {
             span.addEventListener("click", (e) => {
               e.stopPropagation();

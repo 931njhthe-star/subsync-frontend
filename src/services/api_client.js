@@ -2,7 +2,7 @@
 (function () {
   const SubSync = (window.__SubSync = window.__SubSync || {});
 
-  const BASE_URL = "http://localhost:8000/api/v1";
+  const BASE_URL = "https://subsync-backend-4bmh.onrender.com/api/v1";
 
   SubSync.apiClient = {
     async request(endpoint, options = {}) {
